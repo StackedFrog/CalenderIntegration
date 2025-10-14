@@ -1,4 +1,4 @@
-package com.example.calenderintegration.ui.components;
+package com.example.calenderintegration.ui.components
 
-public class Calender {
+class Calender {
 }

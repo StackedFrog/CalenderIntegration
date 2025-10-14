@@ -1,4 +1,4 @@
-package com.example.calenderintegration.api.googleapi;
+package com.example.calenderintegration.api.googleapi
 
-public class GoogleCalenderApi {
+class GoogleCalenderApi {
 }
