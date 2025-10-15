@@ -2,6 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    // hilt
+    id("com.google.dagger.hilt.android")
+    kotlin("kapt")
+
+    // Kotlin serialization plugin for type safe routes and navigation arguments
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -56,4 +63,30 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // lifecycle / viewmodel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
+    // hilt with Jetpack Compose integration ---
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Jetpack Compose integration
+    implementation(libs.androidx.navigation.compose)
+
+    // Views/Fragments integration
+    implementation(libs.androidx.navigation.fragment)
+    implementation(libs.androidx.navigation.ui)
+
+    // Feature module support for Fragments
+    implementation(libs.androidx.navigation.dynamic.features.fragment)
+
+    // Testing Navigation
+    androidTestImplementation(libs.androidx.navigation.testing)
+
+    // JSON serialization library, works with the Kotlin serialization plugin
+    implementation(libs.kotlinx.serialization.json)
 }
