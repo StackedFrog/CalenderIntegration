@@ -1,4 +1,7 @@
 package com.example.calenderintegration.repository
 
-class CalenderRepository {
+
+
+class CalendarRepository(private val serviceAccountJsonPath: String) {
+
 }
