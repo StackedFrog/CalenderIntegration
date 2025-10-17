@@ -13,14 +13,8 @@ fun CalendarScreen (
     forceMode: CalendarMode? = null,
     modifier: Modifier = Modifier
 ){
-    // TODO: IMPROVE STRUCUTRE
     val uiState by calendarViewModel.uiState.collectAsState()
-
-    var mode = uiState.currentMode
-
-    if (forceMode !== null) {
-        mode = forceMode
-    }
+    val mode = forceMode ?: uiState.currentMode
 
     when (mode) {
         CalendarMode.DAILY -> { DailyView(uiState, modifier)}

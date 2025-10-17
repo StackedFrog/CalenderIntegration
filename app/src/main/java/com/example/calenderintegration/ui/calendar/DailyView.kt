@@ -6,5 +6,5 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun DailyView(uiState: CalendarUiState, modifier: Modifier = Modifier) {
-    Text("Hellooooooooo from weekly view")
+    Text("Hellooooooooo from Daily view")
 }

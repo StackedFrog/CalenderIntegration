@@ -33,5 +33,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CalenderApp() {
+fun App2() {
+    Text("Greeeeetings")
 }
