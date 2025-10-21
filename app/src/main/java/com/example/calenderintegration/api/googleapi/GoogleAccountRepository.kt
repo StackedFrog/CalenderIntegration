@@ -63,7 +63,7 @@ object GoogleAccountRepository {
                     email = obj.optString("email", ""),
                     displayName = obj.optString("displayName", ""),
                     accessToken = obj.optString("accessToken", ""),
-                    idToken = obj.optString("idToken", null)
+                    idToken = obj.optString("idToken")
                 )
             )
         }

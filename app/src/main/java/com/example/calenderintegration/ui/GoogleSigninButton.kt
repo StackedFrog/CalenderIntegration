@@ -1,6 +1,7 @@
 package com.example.calenderintegration.ui
 
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.calenderintegration.R
 import com.example.calenderintegration.api.googleapi.GoogleSignIn
+import com.example.calenderintegration.api.googleapi.GoogleSignIn.performFullGoogleLogin
 import kotlinx.coroutines.launch
 
 
@@ -30,7 +32,10 @@ object GoogleSigninButton {
         val onClick: () -> Unit = {
 
             coroutineScope.launch {
-                GoogleSignIn.signIn( context)
+                val account = performFullGoogleLogin(context)
+                if (account != null) {
+                    Log.d("GoogleLogin", "Success: ${account.email}")
+                }
             }
         }
 
