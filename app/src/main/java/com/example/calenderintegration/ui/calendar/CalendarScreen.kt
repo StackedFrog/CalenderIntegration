@@ -14,6 +14,8 @@ fun CalendarScreen (
     modifier: Modifier = Modifier
 ){
     val uiState by calendarViewModel.uiState.collectAsState()
+
+    // if forceMode arg is not added, mode will return to previous view
     val mode = forceMode ?: uiState.currentMode
 
     when (mode) {

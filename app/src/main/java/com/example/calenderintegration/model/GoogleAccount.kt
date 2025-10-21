@@ -1,4 +1,5 @@
 package com.example.calenderintegration.model
 
-class GoogleAccount {
-}
+data class GoogleAccount (
+    val id: String
+)
