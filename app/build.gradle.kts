@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -79,7 +80,7 @@ dependencies {
     // Google Sign-In / OAuth
     implementation("com.google.android.gms:play-services-auth:21.4.0")
 // Example of a different version
-
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     // Google Calendar API
     implementation("com.google.api-client:google-api-client-android:2.0.0")
     implementation("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
