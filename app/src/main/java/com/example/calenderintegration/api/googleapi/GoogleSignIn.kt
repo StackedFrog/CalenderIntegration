@@ -22,7 +22,8 @@ import kotlin.coroutines.suspendCoroutine
 import androidx.activity.result.IntentSenderRequest
 
 
-object GoogleSignIn {
+object GoogleSignIn
+{
 
     // this sign in function that just signs you in without getting access to the calendar data
     suspend fun signIn(context: Context): String? {
