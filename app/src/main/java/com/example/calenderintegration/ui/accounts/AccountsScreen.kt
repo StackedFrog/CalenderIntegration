@@ -25,6 +25,7 @@ fun AccountsScreen(
     ) {
     val accountsState by accountsViewModel.accountsState.collectAsState()
 
+    // dummy api call
     accountsViewModel.loadAllAccounts()
 
     val googleAccounts = accountsState.googleAccounts
@@ -44,7 +45,7 @@ fun AccountsScreen(
         )
 
         Button(
-            onClick = { navController.popBackStack() },
+            onClick = { navController.popBackStack() }, // This function makes the navigation return to its previous location
             modifier = Modifier.padding(top = 16.dp) // Adds space above the button
         ) {
             Text("Go Back")
