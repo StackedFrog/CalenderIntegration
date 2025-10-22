@@ -30,6 +30,7 @@ import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
 import com.example.calenderintegration.api.googleapi.GoogleSignIn
 
 import com.example.calenderintegration.model.Event
+import com.example.calenderintegration.model.GoogleAPI
 
 import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.launch
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     lifecycleScope.launch {
 
                         //performs the full sign in
-                        val account = GoogleSignIn.performFullGoogleLogin(
+                        val account = GoogleAPI.signIn(
                             context = this@MainActivity,
                             startIntentSender = { req -> startAuthorizationIntent.launch(req) } // the same val from above being actually called
                         )
