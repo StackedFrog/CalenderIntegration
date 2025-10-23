@@ -4,7 +4,9 @@ import com.example.calenderintegration.model.Event
 
 data class CalendarUiState (
     val currentMode: CalendarMode = CalendarMode.WEEKLY,
-    val events: List<Event> = emptyList(),
+    val dailyEvents: List<Event> = emptyList(),
+    val weeklyEvents: List<Event> = emptyList(),
+    val monthlyEvents: List<Event> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 )

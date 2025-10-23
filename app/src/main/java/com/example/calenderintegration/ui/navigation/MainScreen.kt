@@ -4,33 +4,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.calenderintegration.ui.accounts.AccountsScreen
 import com.example.calenderintegration.ui.accounts.AccountsViewModel
 import com.example.calenderintegration.ui.auth.AuthViewModel
@@ -38,6 +32,8 @@ import com.example.calenderintegration.ui.auth.LoginScreen
 import com.example.calenderintegration.ui.calendar.CalendarMode
 import com.example.calenderintegration.ui.calendar.CalendarScreen
 import com.example.calenderintegration.ui.calendar.CalendarViewModel
+import com.example.calenderintegration.ui.eventView.EventView
+import com.example.calenderintegration.ui.eventView.EventViewModel
 
 @Composable
 fun MainScreen() {
@@ -49,6 +45,7 @@ fun MainScreen() {
     val calendarViewModel: CalendarViewModel = viewModel()
     val accountsViewModel: AccountsViewModel = viewModel()
     val authViewModel: AuthViewModel = viewModel()
+    val eventViewModel: EventViewModel = viewModel()
 
     val isLoggedIn: Boolean = authViewModel.isLoggedIn()
 
@@ -102,19 +99,37 @@ fun MainScreen() {
                 composable("dailyCalendar") {
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
-                        forceMode = CalendarMode.DAILY
+                        forceMode = CalendarMode.DAILY,
+                        onEventNavigate = {
+                                event -> navigateWithHistory(
+                            navController,
+                            navHistory,
+                            "eventView/${event.id}")
+                        }
                     )
                 }
                 composable("weeklyCalendar") {
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
-                        forceMode = CalendarMode.WEEKLY
+                        forceMode = CalendarMode.WEEKLY,
+                        onEventNavigate = {
+                                event -> navigateWithHistory(
+                            navController,
+                            navHistory,
+                            "eventView/${event.id}")
+                        }
                     )
                 }
                 composable("monthlyCalendar") {
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
-                        forceMode = CalendarMode.MONTHLY
+                        forceMode = CalendarMode.MONTHLY,
+                        onEventNavigate = {
+                                event -> navigateWithHistory(
+                            navController,
+                            navHistory,
+                            "eventView/${event.id}")
+                        }
                     )
                 }
                 composable("accounts") {
@@ -127,6 +142,13 @@ fun MainScreen() {
                             navigateWithHistory(navController, navHistory, "weeklyCalendar")
                         }
                     )
+                }
+                composable(
+                    route = "eventView/{eventId}",
+                    arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val eventId = backStackEntry.arguments?.getString("eventId")
+                    EventView(eventId, eventViewModel)
                 }
             }
             if (isLoggedIn && currentDestination != "login" && currentDestination != "accounts") {
