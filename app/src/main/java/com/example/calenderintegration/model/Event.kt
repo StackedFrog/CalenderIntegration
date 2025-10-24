@@ -13,3 +13,5 @@ data class Event( //Needs to be as basic as possible when it comes to the struct
     val location: String = "",
     val calendarEmail: String
 )
+
+
