@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,19 +20,15 @@ class CalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState
 
-    fun switchMode(mode: CalendarMode) {
-        _uiState.update { it.copy(currentMode = mode)}
-    }
-
-    fun getAllEvents() {
+    fun getAllEventsThisWeek() {
         // get all Events from the repo
         viewModelScope.launch {
             // set uiState to loading
             _uiState.update { it.copy(isLoading = true)}
             try {
-                val events: List<Event> = repo.loadAllEvents()
+                    val events: List<Event> = repo.getEventsByWeek(LocalDate.now())
                 // add events list to uiState
-                _uiState.update { it.copy(events = events) }
+                _uiState.update { it.copy(weeklyEvents = events) }
 
             } catch (e: Exception) {
                 // set uiState to error
