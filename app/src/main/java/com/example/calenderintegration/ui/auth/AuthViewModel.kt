@@ -1,5 +1,7 @@
 package com.example.calenderintegration.ui.auth
 
+import android.content.Context
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import com.example.calenderintegration.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,18 +16,22 @@ class AuthViewModel @Inject constructor(
 ) : ViewModel() {
     private val _authState = MutableStateFlow(AuthState())
     val authState: StateFlow<AuthState> = _authState
-
-    fun logIn() {
+    suspend fun logIn(
+        context: Context,
+        startIntentSender: (IntentSenderRequest) -> Unit
+    ) {
         try {
-            // change logic when repo is complete
-            val response = authRepository.logIn()
+            val response = authRepository.logIn(
+                context = context,
+                startIntentSender = startIntentSender
+            )
             if (response != null) {
                 _authState.update { it.copy(isLoggedIn = true) }
             } else {
                 _authState.update { it.copy(isLoggedIn = false) }
             }
         } catch (e: Exception) {
-            _authState.update { it.copy(error = e.message)}
+            _authState.update { it.copy(error = e.message) }
         }
     }
 
