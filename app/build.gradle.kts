@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
+    // hilt
+    id("com.google.dagger.hilt.android")
+    kotlin("kapt")
+
+    // Kotlin serialization plugin for type safe routes and navigation arguments
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 android {
@@ -32,9 +38,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
-
-
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -68,8 +71,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui)
-    implementation(libs.androidx.core.i18n)
+    implementation(libs.androidx.navigation.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -119,6 +123,24 @@ dependencies {
 
 
 
+
+    // lifecycle / viewmodel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
+    // hilt with Jetpack Compose integration ---
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Jetpack Compose navigation:w
+
+    implementation(libs.androidx.navigation.compose)
+
+    // Testing Navigation
+    androidTestImplementation(libs.androidx.navigation.testing)
+
+    // JSON serialization library, works with the Kotlin serialization plugin
+    implementation(libs.kotlinx.serialization.json)
 }
-
-

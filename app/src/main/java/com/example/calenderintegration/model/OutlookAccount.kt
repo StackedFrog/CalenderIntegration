@@ -1,4 +1,5 @@
 package com.example.calenderintegration.model
 
-class OutlookAccount {
-}
+data class OutlookAccount (
+    val id: String
+)

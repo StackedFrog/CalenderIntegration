@@ -1,5 +1,6 @@
 package com.example.calenderintegration.repository
 
+import android.content.Context
 import android.util.Log
 import com.example.calenderintegration.api.googleapi.CalendarApiService
 import com.example.calenderintegration.model.Event
@@ -27,7 +28,7 @@ class EventRepository @Inject constructor(
     /**
      * Fetches upcoming calendar events for the signed-in user.
      */
-    fun fetchEvents()
+    fun fetchEvents(context : Context)
     {
         val account = authRepository.currentAccount.value
         if (account == null) {
@@ -36,7 +37,7 @@ class EventRepository @Inject constructor(
             return
         }
 
-        calendarService.fetchCalendarData(account) { fetchedEvents ->
+        calendarService.fetchCalendarData(context, account) { fetchedEvents ->
             uiScope.launch {
                 _events.value = fetchedEvents
                 Log.d("GoogleAPI", "Fetched ${fetchedEvents.size} events for ${account.email}")
@@ -47,10 +48,10 @@ class EventRepository @Inject constructor(
      *
      * Gets an event by id. Returns if found, returns null if not
      */
-    fun getEventById(id: String): Event?
+    fun getEventById(context : Context, id: String): Event?
     {
         // Make sure _events is populated
-        fetchEvents()
+        fetchEvents(context)
 
         return _events.value.find { it.id == id }
     }
@@ -80,7 +81,7 @@ class EventRepository @Inject constructor(
     /**
      * Creates a calendar event for the signed-in user.
      */
-    fun createEvent(event: Event, onResult: (Boolean) -> Unit) {
+    fun createEvent(context : Context, event: Event, onResult: (Boolean) -> Unit) {
         val account = authRepository.currentAccount.value
         if (account == null) {
             Log.e("GoogleAPI", "Cannot create event: No signed-in account")
@@ -88,14 +89,14 @@ class EventRepository @Inject constructor(
             return
         }
 
-        calendarService.createCalendarEvent(account, event, onResult)
+        calendarService.createCalendarEvent(context,account, event, onResult)
     }
 
 
     /**
      * Deletes a calendar event for the signed-in user.
      */
-    fun deleteEvent(eventId: String, onResult: (Boolean) -> Unit) {
+    fun deleteEvent(context: Context, eventId: String, onResult: (Boolean) -> Unit) {
         val account = authRepository.currentAccount.value
         if (account == null) {
             Log.e("GoogleAPI", "Cannot delete event: No signed-in account")
@@ -103,7 +104,7 @@ class EventRepository @Inject constructor(
             return
         }
 
-        calendarService.deleteCalendarEvent(account, eventId, onResult)
+        calendarService.deleteCalendarEvent(context,account, eventId, onResult)
     }
 
 }

@@ -2,6 +2,7 @@ package com.example.calenderintegration.repository
 
 import android.content.Context
 import android.util.Log
+import androidx.activity.result.IntentSenderRequest
 import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
 import com.example.calenderintegration.api.googleapi.GoogleSignIn
 
@@ -36,13 +37,13 @@ class AuthRepository @Inject constructor(
      * Signs the user in.
      * Returns the Google Account that successfully logged in or null if something failed
      */
-    suspend fun logIn(context : Context): GoogleAccount?
+    suspend fun logIn(context : Context, startIntentSender: (IntentSenderRequest) -> Unit): GoogleAccount?
     {
         return try {
             // ALWAYS perform the interactive login when this function is called.
             // This allows the user to choose an account every time.
             Log.d("GoogleAPI", "Performing full interactive login as requested by user.")
-            val account = googleSignIn.performFullGoogleLogin(context)
+            val account = googleSignIn.performFullGoogleLogin(context, startIntentSender)
 
             if (account != null) {
                 // If login is successful, save the account and set it as current
