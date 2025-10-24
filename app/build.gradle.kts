@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.calenderintegration"
-        minSdk = 34
+        minSdk = 28
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
