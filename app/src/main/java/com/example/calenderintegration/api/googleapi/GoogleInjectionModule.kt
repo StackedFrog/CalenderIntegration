@@ -1,11 +1,9 @@
 package com.example.calenderintegration.api.googleapi
 
-import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import com.example.calenderintegration.api.googleapi.GoogleSignIn
 
 @Module
 @InstallIn(SingletonComponent::class)
