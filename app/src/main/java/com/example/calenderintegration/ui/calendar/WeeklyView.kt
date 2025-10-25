@@ -39,7 +39,7 @@ fun WeeklyView(
     val daysOfWeek = remember { (0..6).map { startOfWeek.plusDays(it.toLong()) } }
     val horizontalScroll = rememberScrollState()
 
-    ///TESTESTEST
+    // SAMPLE EVENTS NOT CONNECTED TO API YET!!!
     val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     val sampleEvents = listOf(
         Event(

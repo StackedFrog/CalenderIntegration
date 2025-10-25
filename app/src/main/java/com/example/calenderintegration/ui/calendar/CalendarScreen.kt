@@ -21,17 +21,20 @@ fun CalendarScreen (
     val mode = forceMode ?: uiState.currentMode
 
     when (mode) {
-        CalendarMode.DAILY -> { DailyView(calendarViewModel,
+        CalendarMode.DAILY -> {
+            DailyView(calendarViewModel,
             uiState,
             onEventClick = onEventNavigate,
             modifier
         )}
-        CalendarMode.WEEKLY -> { WeeklyView(calendarViewModel ,
+        CalendarMode.WEEKLY -> {
+            WeeklyView(calendarViewModel ,
             uiState,
             onEventClick = { event -> onEventNavigate(event)},
             modifier
         ) }
-        CalendarMode.MONTHLY -> { MonthlyView(calendarViewModel,
+        CalendarMode.MONTHLY -> {
+            MonthlyView(calendarViewModel,
             uiState,
             onEventClick = onEventNavigate,
             modifier
