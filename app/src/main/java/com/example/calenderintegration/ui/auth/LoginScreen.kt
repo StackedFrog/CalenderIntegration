@@ -1,40 +1,41 @@
 package com.example.calenderintegration.ui.auth
 
-import android.util.Log
+import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import com.example.calenderintegration.ui.auth.AuthViewModel
 
-// TODO: Implement google api from the backend
 @Composable
-fun LoginScreen (
+fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val authState by authViewModel.authState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
+    // Launcher for Google Sign-In IntentSender
+    val launcher = rememberLauncherForActivityResult(
+        contract = StartIntentSenderForResult()
+    ) { result ->
+        // You can handle post-sign-in result here if needed
+    }
+
+    // Observe login state and navigate when successful
     LaunchedEffect(authState.isLoggedIn) {
         if (authState.isLoggedIn) {
             onLoginSuccess()
@@ -44,26 +45,23 @@ fun LoginScreen (
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(30.dp), // Adds padding around the screen,
-
+            .padding(30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top // Centers content vertically
+        verticalArrangement = Arrangement.Top
     ) {
         Text(
             text = "Sign Up / Log In",
             style = MaterialTheme.typography.headlineSmall,
-            color = Color.Blue, // or any color you want
+            color = Color.Blue,
             modifier = Modifier.padding(top = 50.dp),
             fontSize = 30.sp
         )
-
     }
-
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main background box
+        // Main background container
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -74,37 +72,45 @@ fun LoginScreen (
                     shape = RoundedCornerShape(25.dp)
                 )
         ) {
-            // First button slightly higher
+            // ✅ Google Sign-In button
             Button(
-                onClick = { /* sign-up */ },
+                onClick = {
+                    coroutineScope.launch {
+                        authViewModel.logIn(
+                            context = context,
+                            startIntentSender = { intentSenderRequest ->
+                                launcher.launch(intentSenderRequest)
+                            }
+                        )
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = (-150).dp) // move upward from center
+                    .offset(y = (-150).dp)
                     .fillMaxWidth(0.75f)
-                    .height(70.dp)        // fixed height instead of fillMaxHeight
+                    .height(70.dp)
             ) {
                 Text("Use Google Account")
             }
 
-            // Second button slightly lower
+            // Zoho button
             Button(
-                onClick = { /* log-in */ },
+                onClick = { /* TODO: implement Zoho login */ },
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 0.dp)    // move downward from center
+                    .offset(y = 0.dp)
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
                 Text("Use Zoho Account")
             }
 
-
-            // Third button slightly lower
+            // Outlook button
             Button(
-                onClick = { /* log-in */ },
+                onClick = { /* TODO: implement Outlook login */ },
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 150.dp)    // move downward from center
+                    .offset(y = 150.dp)
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
@@ -112,27 +118,21 @@ fun LoginScreen (
             }
         }
 
-
-        //Followed Canva idk
+        // Bottom decorative box
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .offset(y = (-60).dp) // move it slightly upward (negative = up)
+                .offset(y = (-60).dp)
                 .fillMaxWidth(0.85f)
                 .fillMaxHeight(0.10f)
                 .background(
                     color = Color(0xFFBBDEFB),
                     shape = RoundedCornerShape(18.dp)
                 )
-        ){}//Button maybe? Idk i followed canva on this one
-
-
+        ) {}
     }
-
-
-
-
 }
+
 
 
 

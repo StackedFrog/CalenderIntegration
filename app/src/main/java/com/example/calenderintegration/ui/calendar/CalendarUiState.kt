@@ -11,4 +11,5 @@ data class CalendarUiState (
     val error: String? = null
 )
 
+
 enum class CalendarMode { DAILY, WEEKLY, MONTHLY}

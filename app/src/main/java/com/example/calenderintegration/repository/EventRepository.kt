@@ -6,18 +6,20 @@ import com.example.calenderintegration.api.googleapi.CalendarApiService
 import com.example.calenderintegration.model.Event
 
 
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Singleton
 
 // Inject a constructor to make hilt automatically add dependencies
+@Singleton
 class EventRepository @Inject constructor(
     private val calendarService : CalendarApiService,
-    private val authRepository: AuthRepository
+    val authRepository: AuthRepository
 )
 {
     private val _events = MutableStateFlow<List<Event>>(emptyList())
@@ -28,22 +30,31 @@ class EventRepository @Inject constructor(
     /**
      * Fetches upcoming calendar events for the signed-in user.
      */
-    fun fetchEvents(context : Context)
-    {
-        val account = authRepository.currentAccount.value
-        if (account == null) {
-            Log.e("GoogleAPI", "Cannot fetch events: No signed-in account")
+    fun fetchEvents(context: Context) {
+        val accounts = authRepository.accounts.value
+        if (accounts.isEmpty()) {
+            Log.e("GoogleAPI", "Cannot fetch events: No signed-in accounts")
             _events.value = emptyList()
             return
         }
 
-        calendarService.fetchCalendarData(context, account) { fetchedEvents ->
-            uiScope.launch {
-                _events.value = fetchedEvents
-                Log.d("GoogleAPI", "Fetched ${fetchedEvents.size} events for ${account.email}")
+        val aggregated = mutableListOf<Event>()
+
+        accounts.forEach { account ->
+            calendarService.fetchCalendarData(context, account) { fetchedEvents ->
+                uiScope.launch {
+                    aggregated += fetchedEvents
+                    _events.value = aggregated
+                    Log.d("GoogleAPI", "Fetched ${fetchedEvents.size} from ${account.email}, total=${aggregated.size}")
+                }
             }
         }
     }
+
+
+
+
+
     /**
      *
      * Gets an event by id. Returns if found, returns null if not

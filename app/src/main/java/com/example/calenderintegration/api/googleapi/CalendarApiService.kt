@@ -51,8 +51,18 @@ object CalendarApiService {
                             val startObj = obj.optJSONObject("start")
                             val endObj = obj.optJSONObject("end")
 
-                            val startTime = startObj?.optString("dateTime") ?: startObj?.optString("date") ?: ""
-                            val endTime = endObj?.optString("dateTime") ?: endObj?.optString("date") ?: ""
+                            // Distinguish between timed and all-day events explicitly
+                            val startTime = when {
+                                startObj?.has("dateTime") == true -> startObj.getString("dateTime")
+                                startObj?.has("date") == true -> startObj.getString("date")
+                                else -> "No time specified"
+                            }
+
+                            val endTime = when {
+                                endObj?.has("dateTime") == true -> endObj.getString("dateTime")
+                                endObj?.has("date") == true -> endObj.getString("date")
+                                else -> "No time specified"
+                            }
 
                             apiEvents.add(
                                 Event(
@@ -72,6 +82,7 @@ object CalendarApiService {
                         Log.e("CalendarAPI", "Failed to fetch: HTTP ${response.code} - $bodyStr")
                         onResult(emptyList())
                     }
+
                 }
             } catch (e: Exception) {
                 Log.e("CalendarAPI", "Failed to fetch events", e)
