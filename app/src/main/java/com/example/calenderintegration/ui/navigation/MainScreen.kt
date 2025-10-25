@@ -1,5 +1,6 @@
 package com.example.calenderintegration.ui.navigation
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -48,6 +49,8 @@ fun MainScreen() {
     val eventViewModel: EventViewModel = viewModel()
 
     val isLoggedIn: Boolean = authViewModel.isLoggedIn()
+
+    Log.d("DICKKKKKK", "isLoggedIn: $isLoggedIn")
 
     // Decide start destination based on login state
     val startDestination = if (isLoggedIn) "weeklyCalendar" else "login"

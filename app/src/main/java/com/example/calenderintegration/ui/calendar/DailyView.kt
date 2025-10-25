@@ -48,36 +48,12 @@ fun DailyView(
     modifier: Modifier = Modifier
 ) {
     val dailyEvents = uiState.dailyEvents
-    val context = LocalContext.current
-    val authViewModel: AuthViewModel = hiltViewModel()
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // --- Top button to go back to login ---
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .align(Alignment.TopCenter),
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Button(
-                onClick = {
-                    authViewModel.goToLoginScreen()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1565C0)),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Text("Add Account", color = Color.White)
-            }
-        }
+
 
         // --- Centered rounded event box ---
         Box(
             modifier = Modifier
-                .align(Alignment.Center)
+
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.75f)
                 .background(
@@ -169,55 +145,7 @@ fun DailyView(
 
 
 
-    Box(
-        modifier = modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        // Bottom row container
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(90.dp) // increase total height of button area
-                .background(Color(0xFFE3F2FD))
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = { /* TODO: action 1 */ },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()// make button fill row height
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Today", fontSize = 18.sp)
-            }
-            Button(
-                onClick = { /* TODO: action 2 */ },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()// make button fill row height
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Week", fontSize = 18.sp)
-            }
-            Button(
-                onClick = { /* TODO: action 3 */ },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()// make button fill row height
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Month", fontSize = 18.sp)
-            }
-        }
-    }
 
-}
 
 
 
