@@ -4,8 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     // hilt
-    id("com.google.dagger.hilt.android")
     kotlin("kapt")
+
+    id("com.google.dagger.hilt.android")
 
     // Kotlin serialization plugin for type safe routes and navigation arguments
     kotlin("plugin.serialization") version "2.2.0"

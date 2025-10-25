@@ -1,11 +1,11 @@
 package com.example.calenderintegration.ui.auth
 
-import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,11 +20,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calenderintegration.repository.EventRepository
+import kotlinx.coroutines.launch
+
 
 // TODO: Implement google api from the backend
 @Composable
@@ -34,6 +39,21 @@ fun LoginScreen (
     modifier: Modifier = Modifier
 ) {
     val authState by authViewModel.authState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+
+
+    // This launcher handles the Google Sign-In UI
+    val intentSenderLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) {
+        // The result is handled internally by the Google Identity services,
+        // so you don't need to add specific logic here. The `logIn` suspend
+        // function in your ViewModel will simply resume its execution.
+    }
+
+
 
     LaunchedEffect(authState.isLoggedIn) {
         if (authState.isLoggedIn) {
@@ -76,7 +96,16 @@ fun LoginScreen (
         ) {
             // First button slightly higher
             Button(
-                onClick = { /* sign-up */ },
+                onClick = {
+                    coroutineScope.launch {
+                    authViewModel.logIn(
+                        context = context,
+                        startIntentSender = { intentSenderRequest ->
+                            intentSenderLauncher.launch(intentSenderRequest)
+                        }
+                    )
+                    }
+                          },
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(y = (-150).dp) // move upward from center
@@ -91,7 +120,7 @@ fun LoginScreen (
                 onClick = { /* log-in */ },
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 0.dp)    // move downward from center
+                    .offset(y = -75.dp)    // move downward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
@@ -104,12 +133,46 @@ fun LoginScreen (
                 onClick = { /* log-in */ },
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 150.dp)    // move downward from center
+                    .offset(y = 0.dp)    // move downward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
                 Text("Use Outlook Account")
             }
+
+
+            // Fourth button to log out
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        authViewModel.logOut(context)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = 75.dp)    // move downward from center
+                    .fillMaxWidth(0.75f)
+                    .height(70.dp)
+            ) {
+                Text("Force log out")
+            }
+
+            // Fifth button to fetch stuff
+            Button(
+                onClick = {
+                    authViewModel.fetchAndLogEvents(context)
+                },
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = 150.dp)    // move downward from center
+                    .fillMaxWidth(0.75f)
+                    .height(70.dp)
+            ) {
+                Text("Fetch and log events")
+            }
+
+
+
         }
 
 

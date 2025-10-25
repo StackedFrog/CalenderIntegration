@@ -1,5 +1,6 @@
 package com.example.calenderintegration.repository
 
+import android.content.Context
 import android.util.Log
 // androidx.compose.ui.test.filter // This import seems unused and can be removed
 // REMOVE: import androidx.compose.ui.text.intl.Locale
@@ -44,9 +45,10 @@ class CalendarRepository @Inject constructor(
      * @param date A LocalDate that falls within the target month.
      * @return A list of all events from all logged-in users for that month.
      */
-    fun getEventsByMonth(date: LocalDate): List<Event>
+    fun getEventsByMonth(context : Context, date: LocalDate): List<Event>
     {
         // Get the single source of truth for events
+        eventRepository.fetchEvents(context)
         val allEvents = eventRepository.events.value
 
         return allEvents.filter { event ->
@@ -64,7 +66,8 @@ class CalendarRepository @Inject constructor(
      * @param date A LocalDate that falls within the target week.
      * @return A list of all events from all logged-in users for that week.
      */
-    fun getEventsByWeek(date: LocalDate): List<Event> {
+    fun getEventsByWeek(context : Context, date: LocalDate): List<Event> {
+        eventRepository.fetchEvents(context)
         val allEvents = eventRepository.events.value
 
         // Use WeekFields to define what constitutes a week (e.g., starts on Monday)
@@ -85,7 +88,8 @@ class CalendarRepository @Inject constructor(
      * @param date The specific day to filter by.
      * @return A list of all events from all logged-in users for that day.
      */
-    fun getEventsByDay(date: LocalDate): List<Event> {
+    fun getEventsByDay(context : Context, date: LocalDate): List<Event> {
+        eventRepository.fetchEvents(context)
         val allEvents = eventRepository.events.value
 
         return allEvents.filter { event ->

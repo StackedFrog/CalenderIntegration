@@ -1,5 +1,6 @@
 package com.example.calenderintegration.ui.calendar
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calenderintegration.model.Event
@@ -20,13 +21,13 @@ class CalendarViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState
 
-    fun getAllEventsThisWeek() {
+    fun getAllEventsThisWeek(context : Context) {
         // get all Events from the repo
         viewModelScope.launch {
             // set uiState to loading
             _uiState.update { it.copy(isLoading = true)}
             try {
-                    val events: List<Event> = repo.getEventsByWeek(LocalDate.now())
+                    val events: List<Event> = repo.getEventsByWeek(context,LocalDate.now())
                 // add events list to uiState
                 _uiState.update { it.copy(weeklyEvents = events) }
 
