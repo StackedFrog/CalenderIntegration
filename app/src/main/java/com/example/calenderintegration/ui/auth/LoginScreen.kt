@@ -7,6 +7,15 @@ import androidx.activity.result.contract.ActivityResultContracts.StartIntentSend
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.example.calenderintegration.ui.auth.AuthViewModel
 
+// TODO: Implement google api from the backend
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
@@ -45,34 +55,42 @@ fun LoginScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(30.dp),
+            .padding(30.dp), // Adds padding around the screen,
+
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        verticalArrangement = Arrangement.Top, // Centers content vertically
     ) {
-        Text(
-            text = "Sign Up / Log In",
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color.Blue,
-            modifier = Modifier.padding(top = 50.dp),
-            fontSize = 30.sp
-        )
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Sign Up / Log In",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .padding(top = 45.dp),
+                fontSize = 30.sp
+            )
+        }
     }
+
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Main background container
+        // Main background box
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .fillMaxWidth(0.85f)
                 .fillMaxHeight(0.60f)
                 .background(
-                    color = Color(0xFFBBDEFB),
-                    shape = RoundedCornerShape(25.dp)
+                    color = MaterialTheme.colorScheme.surfaceDim,
+                    shape = RoundedCornerShape(15.dp)
                 )
         ) {
-            // ✅ Google Sign-In button
+            // First button slightly higher
             Button(
                 onClick = {
                     coroutineScope.launch {
@@ -84,55 +102,56 @@ fun LoginScreen(
                         )
                     }
                 },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = (-150).dp)
+                    .offset(y = (-150).dp) // move upward from center
                     .fillMaxWidth(0.75f)
-                    .height(70.dp)
+                    .height(70.dp)        // fixed height instead of fillMaxHeight
             ) {
-                Text("Use Google Account")
+                Text(text = "Use Google Account",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
 
-            // Zoho button
+            // Second button slightly lower
             Button(
-                onClick = { /* TODO: implement Zoho login */ },
+                onClick = { /* log-in */ },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 0.dp)
+                    .offset(y = 0.dp)    // move downward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
-                Text("Use Zoho Account")
+                Text(text = "Use Zoho Account",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
 
-            // Outlook button
+
+            // Third button slightly lower
             Button(
-                onClick = { /* TODO: implement Outlook login */ },
+                onClick = { /* log-in */ },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .offset(y = 150.dp)
+                    .offset(y = 150.dp)    // move downward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
-                Text("Use Outlook Account")
+                Text(text = "Use Outlook Account",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
 
-        // Bottom decorative box
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(y = (-60).dp)
-                .fillMaxWidth(0.85f)
-                .fillMaxHeight(0.10f)
-                .background(
-                    color = Color(0xFFBBDEFB),
-                    shape = RoundedCornerShape(18.dp)
-                )
-        ) {}
     }
-}
 
+
+
+
+}
 
 
 
