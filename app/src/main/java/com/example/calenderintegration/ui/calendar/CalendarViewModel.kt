@@ -2,103 +2,100 @@ package com.example.calenderintegration.ui.calendar
 
 import android.content.Context
 import android.util.Log
-import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calenderintegration.model.Event
 import com.example.calenderintegration.repository.CalendarRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.firstOrNull
+
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
-    private val repo: CalendarRepository
+    private val calendarRepository: CalendarRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalendarUiState())
-    val uiState: StateFlow<CalendarUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<CalendarUiState> = _uiState
 
-    /**
-     * Fetches all events from all logged-in accounts and updates
-     * the daily, weekly, and monthly event lists once data is received.
-     */
+    private var isFetching = false
+
     fun loadAllEvents(context: Context) {
+        if (isFetching) {
+            Log.d("CalendarVM", "Skipping fetch: already running")
+            return
+        }
+        isFetching = true
+        Log.d("CalendarVM", "Starting loadAllEvents")
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
+            Log.d("CalendarVM", "State set to loading")
 
-            // Trigger the fetch for all signed-in accounts
-            repo.eventRepository.fetchEvents(context)
+            try {
+                val allEvents = calendarRepository.fetchEvents(context)
+                Log.d("CalendarVM", "fetchEvents returned ${allEvents.size} events")
 
-            // Collect and react to updates in the event list
-            repo.eventRepository.events.collectLatest { allEvents ->
                 val today = LocalDate.now()
-
-                val daily = repo.getEventsByDay(today)
-                val weekly = repo.getEventsByWeek(today)
-                val monthly = repo.getEventsByMonth(today)
 
                 _uiState.update {
                     it.copy(
+                        allEvents = allEvents,
+                        dailyEvents = calendarRepository.getEventsByDay(allEvents, today),
+                        weeklyEvents = calendarRepository.getEventsByWeek(allEvents, today),
+                        monthlyEvents = calendarRepository.getEventsByMonth(allEvents, today),
                         isLoading = false,
-                        dailyEvents = daily,
-                        weeklyEvents = weekly,
-                        monthlyEvents = monthly
+                        error = null
                     )
                 }
-
                 Log.d(
                     "CalendarVM",
-                    "✅ Loaded ${daily.size} daily, ${weekly.size} weekly, ${monthly.size} monthly events"
+                    "UI updated: daily=${_uiState.value.dailyEvents.size}, weekly=${_uiState.value.weeklyEvents.size}, monthly=${_uiState.value.monthlyEvents.size}, isLoading=${_uiState.value.isLoading}"
                 )
-            }
-        }
-    }
-
-    /**
-     * Fetches and filters events for a specific day.
-     */
-    fun getEventsForDay(context: Context, date: LocalDate) {
-        viewModelScope.launch {
-            repo.eventRepository.fetchEvents(context)
-            val events = repo.getEventsByDay(date)
-            _uiState.update { it.copy(dailyEvents = events) }
-            Log.d("CalendarVM", "Fetched ${events.size} events for $date")
-        }
-    }
-
-    /**
-     * Fetches and filters all events for the current week.
-     */
-    fun getAllEventsThisWeek() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            try {
-                val events = repo.getEventsByWeek(LocalDate.now())
-                _uiState.update { it.copy(weeklyEvents = events, isLoading = false) }
             } catch (e: Exception) {
+                Log.e("CalendarVM", "Failed to fetch events", e)
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+            } finally {
+                isFetching = false
+                Log.d("CalendarVM", "Fetch complete, isFetching=false")
             }
         }
     }
 
-    /**
-     * Refreshes all events for all signed-in accounts.
-     * Used when a new account is added or events change.
-     */
-    fun refresh(context: Context) {
+    fun startAutoRefresh(context: Context) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            repo.eventRepository.fetchEvents(context)
+            // Initial fetch once
+            loadAllEvents(context)
+
+            // Then refresh every 2 minutes
+            while (isActive) {
+                delay(2 * 60 * 1000L)
+                loadAllEvents(context)
+            }
         }
+    }
+
+
+
+    fun getEventsForDay(date: LocalDate): List<Event> {
+        val all = _uiState.value.allEvents
+        return calendarRepository.getEventsByDay(all, date)
+    }
+
+    fun getEventsForWeek(date: LocalDate): List<Event> {
+        val all = _uiState.value.allEvents
+        return calendarRepository.getEventsByWeek(all, date)
+    }
+
+    fun getEventsForMonth(date: LocalDate): List<Event> {
+        val all = _uiState.value.allEvents
+        return calendarRepository.getEventsByMonth(all, date)
     }
 }
-
 

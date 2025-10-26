@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.graphics.Color
@@ -38,107 +39,112 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.calenderintegration.ui.auth.AuthViewModel
-import java.time.LocalDate
+import java.time.LocalDate@Composable
 
-@Composable
+
+
+
 fun DailyView(
     calendarViewModel: CalendarViewModel,
     uiState: CalendarUiState,
     onEventClick: (event: Event) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val today = remember { LocalDate.now() }
+
+    // No need to call calendarViewModel.getEventsForDay(today)
+    // uiState.dailyEvents already contains today's events from loadAllEvents()
+
     val dailyEvents = uiState.dailyEvents
 
+    Box(
+        modifier = modifier
+            .fillMaxWidth(0.95f)
+            .fillMaxHeight(0.75f)
+            .background(
+                color = Color(0xFFE3F2FD),
+                shape = RoundedCornerShape(25.dp)
+            )
+            .padding(16.dp)
+    ) {
+        if (uiState.isLoading) {
+            Text(
+                "Loading events...",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Events for $today",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF0D47A1),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
 
-        // --- Centered rounded event box ---
-        Box(
-            modifier = Modifier
-
-                .fillMaxWidth(0.95f)
-                .fillMaxHeight(0.75f)
-                .background(
-                    color = Color(0xFFE3F2FD),
-                    shape = RoundedCornerShape(25.dp)
-                )
-                .padding(16.dp)
-        ) {
-            if (uiState.isLoading) {
-                Text(
-                    "Loading events...",
-                    color = Color.Gray,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    item {
-                        Text(
-                            text = "Events for ${LocalDate.now()}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF0D47A1),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
-
-                    items(dailyEvents) { event ->
-                        Card(
+                items(dailyEvents) { event ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onEventClick(event) },
+                        elevation = CardDefaults.cardElevation(4.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onEventClick(event) },
-                            elevation = CardDefaults.cardElevation(4.dp),
-                            shape = RoundedCornerShape(12.dp)
+                                .padding(12.dp)
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp)
-                            ) {
+                            Text(
+                                event.summary,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFF0D47A1)
+                            )
+                            if (event.description.isNotBlank()) {
                                 Text(
-                                    event.summary,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color(0xFF0D47A1)
+                                    event.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.DarkGray
                                 )
-                                if (event.description.isNotBlank()) {
-                                    Text(
-                                        event.description,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.DarkGray
-                                    )
-                                }
+                            }
+                            Text(
+                                "${event.start} - ${event.end}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF1565C0)
+                            )
+                            if (event.location.isNotBlank()) {
                                 Text(
-                                    "${event.start} - ${event.end}",
+                                    "📍 ${event.location}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF1565C0)
+                                    color = Color.Gray
                                 )
-                                if (event.location.isNotBlank()) {
-                                    Text(
-                                        "📍 ${event.location}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.Gray
-                                    )
-                                }
                             }
                         }
                     }
+                }
 
-                    if (dailyEvents.isEmpty()) {
-                        item {
-                            Text(
-                                text = "No events today",
-                                color = Color.Gray,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 40.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                if (dailyEvents.isEmpty()) {
+                    item {
+                        Text(
+                            text = "No events today",
+                            color = Color.Gray,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 40.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
         }
     }
+}
+
 
 
 
