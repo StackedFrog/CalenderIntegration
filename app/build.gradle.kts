@@ -73,11 +73,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui)
-<<<<<<< HEAD
-    implementation(libs.androidx.compose.ui.text.google.fonts)
-=======
     implementation(libs.androidx.navigation.common.ktx)
->>>>>>> 04ee60ee35c409385b97ef336f14134ca5fb47b2
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
