@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.release
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -26,7 +24,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
 
     signingConfigs {
         create("release") {
