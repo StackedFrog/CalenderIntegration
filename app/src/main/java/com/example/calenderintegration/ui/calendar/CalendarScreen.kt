@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.calenderintegration.model.Event
+import java.time.LocalDate
+
 @Composable
 fun CalendarScreen(
     calendarViewModel: CalendarViewModel,
@@ -20,7 +22,7 @@ fun CalendarScreen(
     val context = LocalContext.current
     val uiState by calendarViewModel.uiState.collectAsState()
 
-    // Only fetch if events are not already loaded
+    // Load all events once if not already loaded
     LaunchedEffect(calendarViewModel) {
         if (!uiState.isLoading && uiState.allEvents.isEmpty()) {
             calendarViewModel.loadAllEvents(context)
@@ -31,13 +33,16 @@ fun CalendarScreen(
 
     when (mode) {
         CalendarMode.DAILY -> DailyView(
+            context = context,
             calendarViewModel = calendarViewModel,
             uiState = uiState,
+            selectedDate = LocalDate.now(),   // <-- Added this line
             onEventClick = onEventNavigate,
             modifier = modifier
         )
 
         CalendarMode.WEEKLY -> WeeklyView(
+            context = context,
             calendarViewModel = calendarViewModel,
             uiState = uiState,
             onEventClick = onEventNavigate,
@@ -45,6 +50,7 @@ fun CalendarScreen(
         )
 
         CalendarMode.MONTHLY -> MonthlyView(
+            context = context,
             calendarViewModel = calendarViewModel,
             uiState = uiState,
             onEventClick = onEventNavigate,
