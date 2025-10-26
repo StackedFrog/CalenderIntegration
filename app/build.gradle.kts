@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.release
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -25,15 +27,31 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("/Users/sebastiangal/StudioProjects/CalendarUISeb/app/calendar_integration_release.jks")
+            storePassword = "123456"
+            keyAlias = "calendar_key"
+            keyPassword = "123456"
+        }
+    }
+
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+        getByName("debug") {
+            // Optional: sign debug builds with the same keystore
+            signingConfig = signingConfigs.getByName("release")
+        }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
