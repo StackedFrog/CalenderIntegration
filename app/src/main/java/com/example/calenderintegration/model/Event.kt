@@ -12,6 +12,19 @@ data class Event( //Needs to be as basic as possible when it comes to the struct
     val end: String,
     val location: String = "",
     val calendarEmail: String
+
 )
 
+
+data class calendarEvent(
+    val id: String,
+    val summary: String,
+    val description: String,
+    val start: String,
+    val end: String,
+    val location: String = "",
+    val calendarEmail: String,
+    val etag: String // Required for Zoho deletion
+
+)
 
