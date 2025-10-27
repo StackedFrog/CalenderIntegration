@@ -1,33 +1,35 @@
 package com.example.calenderintegration.ui.auth
 
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import com.example.calenderintegration.ui.auth.AuthViewModel
 
-// TODO: Implement google api from the backend
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
@@ -40,7 +42,7 @@ fun LoginScreen(
 
     // Launcher for Google Sign-In IntentSender
     val launcher = rememberLauncherForActivityResult(
-        contract = StartIntentSenderForResult()
+        contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         // You can handle post-sign-in result here if needed
     }
@@ -110,7 +112,7 @@ fun LoginScreen(
                     .fillMaxWidth(0.75f)
                     .height(70.dp)        // fixed height instead of fillMaxHeight
             ) {
-                Text(text = "Use Google Account",
+                Text(text = "Sign in with Google",
                     color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
 
@@ -125,7 +127,7 @@ fun LoginScreen(
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
-                Text(text = "Use Zoho Account",
+                Text(text = "Sign in with Zoho",
                     color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
 
@@ -141,16 +143,11 @@ fun LoginScreen(
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
-                Text(text = "Use Outlook Account",
+                Text(text = "Sign in with Outlook",
                     color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
-
     }
-
-
-
-
 }
 
 
