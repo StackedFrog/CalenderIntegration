@@ -184,7 +184,7 @@ fun MainScreen(context: Context = LocalContext.current)
                     )
                 }
                 composable("accounts") {
-                    AccountsScreen(accountsViewModel, navController)
+                    AccountsScreen(modifier = Modifier, accountsViewModel = accountsViewModel, navController = navController)
                 }
                 composable("login") {
                     LoginScreen(

@@ -1,6 +1,5 @@
 package com.example.calenderintegration.ui.accounts
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,9 +18,9 @@ import androidx.navigation.NavHostController
 
 @Composable
 fun AccountsScreen(
-    accountsViewModel: AccountsViewModel = viewModel(),
-    navController: NavHostController,
     modifier: Modifier = Modifier,
+    accountsViewModel: AccountsViewModel = viewModel(),
+    navController: NavHostController
     ) {
     val accountsState by accountsViewModel.accountsState.collectAsState()
 
@@ -54,3 +53,4 @@ fun AccountsScreen(
     }
 
 }
+

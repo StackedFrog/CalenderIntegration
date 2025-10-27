@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 
@@ -56,20 +57,19 @@ fun DailyView(
             .fillMaxWidth(0.95f)
             .fillMaxHeight(0.75f)
             .background(
-                color = Color(0xFFE3F2FD),
-                shape = RoundedCornerShape(25.dp)
+                color = MaterialTheme.colorScheme.background,
             )
             .padding(16.dp)
     ) {
         when {
             uiState.isLoading -> {
-                Text("Loading events...", color = Color.Gray, modifier = Modifier.align(Alignment.Center))
+                Text("Loading events...", color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.align(Alignment.Center))
             }
 
             dailyEvents.isEmpty() -> {
                 Text(
                     "No events for ${selectedDate}",
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -83,7 +83,7 @@ fun DailyView(
                         Text(
                             text = "Events for $selectedDate",
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF0D47A1),
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
@@ -94,7 +94,8 @@ fun DailyView(
                                 .fillMaxWidth()
                                 .clickable { onEventClick(event) },
                             elevation = CardDefaults.cardElevation(4.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -104,25 +105,25 @@ fun DailyView(
                                 Text(
                                     event.summary,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = Color(0xFF0D47A1)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 if (event.description.isNotBlank()) {
                                     Text(
                                         event.description,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.DarkGray
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                                 Text(
                                     "${event.start} - ${event.end}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF1565C0)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 if (event.location.isNotBlank()) {
                                     Text(
                                         "📍 ${event.location}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color.Gray
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
