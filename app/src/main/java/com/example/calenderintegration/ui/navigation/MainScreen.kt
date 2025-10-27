@@ -44,10 +44,8 @@ import com.example.calenderintegration.ui.eventView.EventView
 import com.example.calenderintegration.ui.eventView.EventViewModel
 import kotlinx.coroutines.flow.collectLatest
 
-
 @Composable
-fun MainScreen(context: Context = LocalContext.current)
-{
+fun MainScreen(context: Context = LocalContext.current) {
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val navHistory = remember { mutableStateListOf<String>() }
@@ -58,11 +56,9 @@ fun MainScreen(context: Context = LocalContext.current)
     val authViewModel: AuthViewModel = viewModel()
     val eventViewModel: EventViewModel = viewModel()
 
-// Collect UI states
+    // Collect UI states
     val uiState by calendarViewModel.uiState.collectAsState()
     val authState by authViewModel.authState.collectAsState()
-
-
 
     LaunchedEffect(Unit) {
         // Initialize authentication
@@ -81,39 +77,32 @@ fun MainScreen(context: Context = LocalContext.current)
     }
 
     // Combine readiness into a single flag
-        val isInitializing = !authState.isInitialized ||
-                (authState.isLoggedIn && uiState.isLoading)
+    val isInitializing = !authState.isInitialized ||
+            (authState.isLoggedIn && uiState.isLoading)
 
     // Show spinner only while still initializing (auth or first event load)
-        if (isInitializing) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-            return
+    if (isInitializing) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
         }
+        return
+    }
 
-        Log.d("AuthCheck", "initialized=${authState.isInitialized}, loggedIn=${authState.isLoggedIn}")
-
-
-
+    Log.d("AuthCheck", "initialized=${authState.isInitialized}, loggedIn=${authState.isLoggedIn}")
 
     // Decide start destination based on login state
     val startDestination = if (authState.isLoggedIn) "weeklyCalendar" else "login"
 
-    // Navigation host handles screen navigation
-
     val currentDestination = navBackStackEntry.value?.destination?.route
 
-    // top bar and bottom bar
     Scaffold(
-        bottomBar =  {
+        bottomBar = {
             // only show bottom bar if user is logged in and not on the login page
             if (authState.isLoggedIn && currentDestination != "login" && currentDestination != "accounts") {
-                NavigationBar (windowInsets = NavigationBarDefaults.windowInsets)
-                {
+                NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
                     NavigationBarItem(
                         selected = currentDestination == "dailyCalendar",
                         onClick = { navigateWithHistory(navController, navHistory, "dailyCalendar") },
@@ -141,7 +130,6 @@ fun MainScreen(context: Context = LocalContext.current)
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
@@ -151,11 +139,8 @@ fun MainScreen(context: Context = LocalContext.current)
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
                         forceMode = CalendarMode.DAILY,
-                        onEventNavigate = {
-                                event -> navigateWithHistory(
-                            navController,
-                            navHistory,
-                            "eventView/${event.id}")
+                        onEventNavigate = { event ->
+                            navigateWithHistory(navController, navHistory, "eventView/${event.id}")
                         }
                     )
                 }
@@ -163,11 +148,8 @@ fun MainScreen(context: Context = LocalContext.current)
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
                         forceMode = CalendarMode.WEEKLY,
-                        onEventNavigate = {
-                                event -> navigateWithHistory(
-                            navController,
-                            navHistory,
-                            "eventView/${event.id}")
+                        onEventNavigate = { event ->
+                            navigateWithHistory(navController, navHistory, "eventView/${event.id}")
                         }
                     )
                 }
@@ -175,16 +157,17 @@ fun MainScreen(context: Context = LocalContext.current)
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
                         forceMode = CalendarMode.MONTHLY,
-                        onEventNavigate = {
-                                event -> navigateWithHistory(
-                            navController,
-                            navHistory,
-                            "eventView/${event.id}")
+                        onEventNavigate = { event ->
+                            navigateWithHistory(navController, navHistory, "eventView/${event.id}")
                         }
                     )
                 }
                 composable("accounts") {
-                    AccountsScreen(accountsViewModel, navController)
+                    AccountsScreen(
+                        accountsViewModel = accountsViewModel,
+                        navController = navController,
+                        authViewModel = authViewModel   // <-- the only change
+                    )
                 }
                 composable("login") {
                     LoginScreen(
@@ -202,9 +185,10 @@ fun MainScreen(context: Context = LocalContext.current)
                     EventView(eventId, eventViewModel)
                 }
             }
+
             if (authState.isLoggedIn && currentDestination != "login" && currentDestination != "accounts") {
                 FloatingAccountButton(
-                    { navigateWithHistory(navController, navHistory, "accounts")},
+                    { navigateWithHistory(navController, navHistory, "accounts") },
                     modifier = Modifier.align(Alignment.TopEnd)
                 )
             }

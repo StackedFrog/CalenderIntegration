@@ -3,28 +3,19 @@ package com.example.calenderintegration.repository
 import android.content.Context
 import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
 import com.example.calenderintegration.model.GoogleAccount
-import com.example.calenderintegration.model.OutlookAccount
-import jakarta.inject.Inject
+import javax.inject.Inject
 
 class AccountsRepository @Inject constructor(
-    private val accountRepository: GoogleAccountRepository
-)
-{
+    private val googleStore: GoogleAccountRepository
+) {
+    /** Always return a list (never null). */
+    fun getGoogleAccounts(context: Context): List<GoogleAccount> =
+        googleStore.loadAccounts(context)
 
-    /**
-     *
-     * Retrieves the Google Accounts that are saved.
-     * Returns null if no accounts are found.
-     */
-    fun getGoogleAccounts(context : Context): List<GoogleAccount>?
-    {
-        val googleAccounts = accountRepository.loadAccounts(context)
-        if (googleAccounts.isEmpty()) { return null }
-
-        return accountRepository.loadAccounts(context)
-    }
-
-    fun getOutlookAccounts(): List<OutlookAccount> {
-        return emptyList()
+    /** Remove a Google account by email and persist. */
+    fun deleteGoogleAccount(context: Context, email: String) {
+        val current = googleStore.loadAccounts(context).toMutableList()
+        val newList = current.filterNot { it.email.equals(email, ignoreCase = true) }
+        googleStore.saveAccounts(context, newList)
     }
 }
