@@ -41,6 +41,8 @@ object GoogleAccountRepository {
         prefs.edit().putString("accounts", json.toString()).apply()
     }
 
+
+    // function loads all previously saved Google accounts from encrypted local storage on the device
     fun loadAccounts(context: Context): List<GoogleAccount> {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -56,10 +58,11 @@ object GoogleAccountRepository {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            Log.w("GoogleAPI", "EncryptedSharedPreferences reset due to invalid keyset (${e::class.simpleName})")
+            // Log a clean one-line message without the stack trace
+            Log.w("GoogleAPI", "EncryptedSharedPreferences reset due to invalid or outdated keyset (${e::class.simpleName})")
+
+            // Reset corrupted or mismatched encrypted prefs
             context.deleteSharedPreferences(PREF_NAME)
-
-
 
             EncryptedSharedPreferences.create(
                 context,
@@ -80,7 +83,6 @@ object GoogleAccountRepository {
                 email = obj.optString("email", ""),
                 displayName = obj.optString("displayName", ""),
                 accessToken = obj.optString("accessToken", "")
-                // idToken = obj.optString("idToken", "") // might not be needed anymore
             )
             Log.d("GoogleAccountRepository", "Loaded account: $acc")
             accounts.add(acc)
@@ -89,6 +91,8 @@ object GoogleAccountRepository {
         Log.d("GoogleAccountRepository", "Final list of accounts: $accounts")
         return accounts
     }
+
+
 
 
     // saves account using the top function using an encryption

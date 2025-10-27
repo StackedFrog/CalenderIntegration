@@ -2,8 +2,9 @@ package com.example.calenderintegration.ui.calendar
 
 import com.example.calenderintegration.model.Event
 
-data class CalendarUiState (
+data class CalendarUiState(
     val currentMode: CalendarMode = CalendarMode.WEEKLY,
+    val allEvents: List<Event> = emptyList(),
     val dailyEvents: List<Event> = emptyList(),
     val weeklyEvents: List<Event> = emptyList(),
     val monthlyEvents: List<Event> = emptyList(),
@@ -11,4 +12,4 @@ data class CalendarUiState (
     val error: String? = null
 )
 
-enum class CalendarMode { DAILY, WEEKLY, MONTHLY}
+enum class CalendarMode { DAILY, WEEKLY, MONTHLY }
