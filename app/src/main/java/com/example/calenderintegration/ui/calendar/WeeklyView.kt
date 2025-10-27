@@ -88,14 +88,16 @@ private fun DayColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
+                .background(color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = RoundedCornerShape(15.dp)),
+            contentAlignment = Alignment.Center,
+
         ) {
             Text(
                 text = date.format(formatter),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSecondary
                 ),
                 textAlign = TextAlign.Center
             )
@@ -116,10 +118,10 @@ private fun DayColumn(
                     Text(
                         text = "No events",
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .padding(4.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -136,7 +138,8 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
             .padding(vertical = 4.dp, horizontal = 8.dp)
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(4.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
     ) {
         Column(
             modifier = Modifier
@@ -146,26 +149,26 @@ private fun EventCard(event: Event, onClick: () -> Unit) {
             Text(
                 text = event.summary,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF0D47A1)
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (event.description.isNotBlank()) {
                 Text(
                     text = event.description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             // These values are already parsed in CalendarRepository
             Text(
                 text = "${event.start} - ${event.end}",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF1565C0)
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             if (event.location.isNotBlank()) {
                 Text(
                     text = "📍 ${event.location}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }

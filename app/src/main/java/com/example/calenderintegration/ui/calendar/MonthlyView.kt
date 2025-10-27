@@ -53,7 +53,7 @@ fun MonthlyView(
         Text(
             text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy")),
             style = MaterialTheme.typography.titleLarge,
-            color = Color(0xFF0D47A1),
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -76,9 +76,10 @@ fun MonthlyView(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .background(
-                            if (day == selectedDay.value) Color(0xFFBBDEFB)
-                            else Color(0xFFE3F2FD),
-                            shape = RoundedCornerShape(8.dp)
+                                color =
+                                    if (day == selectedDay.value) MaterialTheme.colorScheme.primaryContainer
+                                    else  MaterialTheme.colorScheme.secondaryContainer,
+                                shape = RoundedCornerShape(8.dp)
                         )
                         .clickable { selectedDay.value = day }
                         .padding(6.dp)
@@ -96,7 +97,7 @@ fun MonthlyView(
                             Text(
                                 text = "${eventsForDay.size} events",
                                 fontSize = 10.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -111,12 +112,12 @@ fun MonthlyView(
             Text(
                 text = "Events on ${day.format(DateTimeFormatter.ofPattern("MMM dd"))}",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF0D47A1),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             if (events.isEmpty()) {
-                Text("No events", color = Color.Gray)
+                Text("No events", color = MaterialTheme.colorScheme.onBackground)
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(events) { event ->
@@ -125,25 +126,27 @@ fun MonthlyView(
                                 .fillMaxWidth()
                                 .clickable { onEventClick(event) },
                             elevation = CardDefaults.cardElevation(4.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
                                     event.summary,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = Color(0xFF0D47A1)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 if (event.description.isNotBlank()) {
                                     Text(
                                         event.description,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.DarkGray
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                                 Text(
                                     "${event.start} - ${event.end}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF1565C0)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                             }
                         }
