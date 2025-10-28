@@ -3,8 +3,11 @@ package com.example.calenderintegration.repository
 import android.content.Context
 import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
 import com.example.calenderintegration.model.GoogleAccount
-import javax.inject.Inject
 
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
 class AccountsRepository @Inject constructor(
     private val googleStore: GoogleAccountRepository
 ) {

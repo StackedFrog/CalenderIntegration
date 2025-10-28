@@ -7,6 +7,7 @@ import com.example.calenderintegration.api.googleapi.CalendarApiService
 // REMOVE: import androidx.compose.ui.text.intl.Locale
 import com.example.calenderintegration.model.Event
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
@@ -24,6 +25,9 @@ class CalendarRepository @Inject constructor(
     private val calendarService: CalendarApiService,
     private val accountsRepository: AccountsRepository
 ) {
+    private val _cachedEvents = MutableStateFlow<List<Event>>(emptyList())
+    val cachedEvents: StateFlow<List<Event>> = _cachedEvents
+
     /**
      * Fetches all calendar events from all saved Google accounts.
      * Returns a combined list instead of managing state internally.
@@ -33,6 +37,7 @@ class CalendarRepository @Inject constructor(
 
         if (accounts.isEmpty()) {
             Log.w("CalendarRepository", "No saved accounts; returning empty list")
+            _cachedEvents.value = emptyList()
             cont.resume(emptyList(), null)
             return@suspendCancellableCoroutine
         }
@@ -46,15 +51,14 @@ class CalendarRepository @Inject constructor(
                 remaining--
 
                 if (remaining == 0) {
-                    Log.d(
-                        "CalendarRepository",
-                        "Fetched ${aggregated.size} total events from ${accounts.size} accounts"
-                    )
+                    Log.d("CalendarRepository", "Fetched ${aggregated.size} total events")
+                    _cachedEvents.value = aggregated // <-- cache update
                     cont.resume(aggregated, null)
                 }
             }
         }
     }
+
 
     // region ---------- Parsing + Filtering ----------
     data class ParsedEventDate(
@@ -170,6 +174,13 @@ class CalendarRepository @Inject constructor(
             } else null
         }
     }
+
+
+
+    fun getEventById(id: String): Event? {
+        return _cachedEvents.value.firstOrNull { it.id == id }
+    }
+
 
     // endregion
 }
