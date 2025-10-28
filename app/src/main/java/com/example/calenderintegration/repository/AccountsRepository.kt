@@ -1,30 +1,32 @@
 package com.example.calenderintegration.repository
 
-import android.content.Context
+
 import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
 import com.example.calenderintegration.model.GoogleAccount
 import com.example.calenderintegration.model.OutlookAccount
-import jakarta.inject.Inject
 
+
+import android.content.Context
+
+
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
 class AccountsRepository @Inject constructor(
-    private val accountRepository: GoogleAccountRepository
-)
-{
-
+    private val googleAccountRepository: GoogleAccountRepository
+) {
     /**
-     *
-     * Retrieves the Google Accounts that are saved.
+     * Retrieves locally saved Google accounts.
      * Returns null if no accounts are found.
      */
-    fun getGoogleAccounts(context : Context): List<GoogleAccount>?
-    {
-        val googleAccounts = accountRepository.loadAccounts(context)
-        if (googleAccounts.isEmpty()) { return null }
-
-        return accountRepository.loadAccounts(context)
+    fun getGoogleAccounts(context: Context): List<GoogleAccount>? {
+        val googleAccounts = googleAccountRepository.loadAccounts(context)
+        return if (googleAccounts.isEmpty()) null else googleAccounts
     }
 
-    fun getOutlookAccounts(): List<OutlookAccount> {
-        return emptyList()
-    }
+    /**
+     * Placeholder for Outlook accounts — not implemented yet.
+     */
+    fun getOutlookAccounts(): List<OutlookAccount> = emptyList()
 }

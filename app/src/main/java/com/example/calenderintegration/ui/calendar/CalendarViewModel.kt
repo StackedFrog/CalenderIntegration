@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calenderintegration.model.Event
 import com.example.calenderintegration.repository.CalendarRepository
+import com.example.calenderintegration.repository.EventRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,13 +19,34 @@ import java.time.LocalDate
 import javax.inject.Inject
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
-    private val calendarRepository: CalendarRepository
+    private val calendarRepository: CalendarRepository,
+    private val eventRepository: EventRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CalendarUiState())
     val uiState: StateFlow<CalendarUiState> = _uiState
 
     private var isFetching = false
+
+    init {
+        // Automatically update UI whenever EventRepository updates its cache
+        viewModelScope.launch {
+            eventRepository.cachedEvents.collect { allEvents ->
+                val today = LocalDate.now()
+
+                _uiState.update {
+                    it.copy(
+                        allEvents = allEvents,
+                        dailyEvents = calendarRepository.getEventsByDay(allEvents, today),
+                        weeklyEvents = calendarRepository.getEventsByWeek(allEvents, today),
+                        monthlyEvents = calendarRepository.getEventsByMonth(allEvents, today),
+                        isLoading = false,
+                        error = null
+                    )
+                }
+            }
+        }
+    }
 
     fun loadAllEvents(context: Context) {
         if (isFetching) {
@@ -56,7 +78,10 @@ class CalendarViewModel @Inject constructor(
                 }
                 Log.d(
                     "CalendarVM",
-                    "UI updated: daily=${_uiState.value.dailyEvents.size}, weekly=${_uiState.value.weeklyEvents.size}, monthly=${_uiState.value.monthlyEvents.size}, isLoading=${_uiState.value.isLoading}"
+                    "UI updated: daily=${_uiState.value.dailyEvents.size}, " +
+                            "weekly=${_uiState.value.weeklyEvents.size}, " +
+                            "monthly=${_uiState.value.monthlyEvents.size}, " +
+                            "isLoading=${_uiState.value.isLoading}"
                 )
             } catch (e: Exception) {
                 Log.e("CalendarVM", "Failed to fetch events", e)
@@ -80,8 +105,6 @@ class CalendarViewModel @Inject constructor(
             }
         }
     }
-
-
 
     fun getEventsForDay(date: LocalDate): List<Event> {
         val all = _uiState.value.allEvents

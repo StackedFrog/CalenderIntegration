@@ -209,4 +209,72 @@ object CalendarApiService {
     }
 
 
+
+    fun updateCalendarEvent(
+        context: Context,
+        account: GoogleAccount,
+        event: Event,
+        onResult: (Boolean) -> Unit
+    ) {
+        val client = OkHttpClient()
+
+        val jsonBody = JSONObject().apply {
+            put("summary", event.summary)
+            put("description", event.description)
+            put("location", event.location)
+            put("start", JSONObject().apply {
+                put("dateTime", event.start)
+                put("timeZone", "UTC")
+            })
+            put("end", JSONObject().apply {
+                put("dateTime", event.end)
+                put("timeZone", "UTC")
+            })
+        }
+
+        val body = jsonBody.toString().toRequestBody("application/json".toMediaType())
+
+        val request = Request.Builder()
+            .url("https://www.googleapis.com/calendar/v3/calendars/primary/events/${event.id}")
+            .addHeader("Authorization", "Bearer ${account.accessToken}")
+            .addHeader("Content-Type", "application/json")
+            .put(body) // <— PUT is used for updates
+            .build()
+
+        Thread {
+            try {
+                client.newCall(request).execute().use { response ->
+                    val bodyStr = response.body?.string()
+
+                    if (response.code == 401) {
+                        Log.w("CalendarAPI", "Token expired, refreshing for ${account.email}")
+                        val refreshed = runBlocking {
+                            GoogleSignIn.refreshAccessToken(context, account)
+                        }
+                        if (refreshed != null) {
+                            updateCalendarEvent(context, refreshed, event, onResult)
+                            return@Thread
+                        } else {
+                            onResult(false)
+                            return@Thread
+                        }
+                    }
+
+                    if (response.isSuccessful) {
+                        Log.d("CalendarAPI", "Event updated successfully for ${account.email}")
+                        onResult(true)
+                    } else {
+                        Log.e("CalendarAPI", "Failed to update: HTTP ${response.code} - $bodyStr")
+                        onResult(false)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("CalendarAPI", "Exception updating event", e)
+                onResult(false)
+            }
+        }.start()
+    }
+
+
+
 }
