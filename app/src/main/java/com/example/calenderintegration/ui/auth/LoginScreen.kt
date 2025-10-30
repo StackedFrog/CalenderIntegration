@@ -2,7 +2,6 @@ package com.example.calenderintegration.ui.auth
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,10 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun LoginScreen(
@@ -58,7 +59,6 @@ fun LoginScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(30.dp), // Adds padding around the screen,
-
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top, // Centers content vertically
     ) {
@@ -76,7 +76,6 @@ fun LoginScreen(
             )
         }
     }
-
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -147,8 +146,22 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         }
+
+        // Bottom decorative box
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = (-60).dp)
+                .fillMaxWidth(0.85f)
+                .fillMaxHeight(0.10f)
+                .background(
+                    color = Color(0xFFBBDEFB),
+                    shape = RoundedCornerShape(18.dp)
+                )
+        ) {}
     }
 }
+
 
 
 

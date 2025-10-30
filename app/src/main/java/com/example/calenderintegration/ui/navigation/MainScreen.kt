@@ -44,6 +44,7 @@ import com.example.calenderintegration.ui.eventView.EventView
 import com.example.calenderintegration.ui.eventView.EventViewModel
 import kotlinx.coroutines.flow.collectLatest
 
+
 @Composable
 fun MainScreen(context: Context = LocalContext.current) {
     val navController = rememberNavController()
@@ -59,6 +60,8 @@ fun MainScreen(context: Context = LocalContext.current) {
     // Collect UI states
     val uiState by calendarViewModel.uiState.collectAsState()
     val authState by authViewModel.authState.collectAsState()
+
+
 
     LaunchedEffect(Unit) {
         // Initialize authentication
@@ -93,11 +96,17 @@ fun MainScreen(context: Context = LocalContext.current) {
 
     Log.d("AuthCheck", "initialized=${authState.isInitialized}, loggedIn=${authState.isLoggedIn}")
 
+
+
+
     // Decide start destination based on login state
     val startDestination = if (authState.isLoggedIn) "weeklyCalendar" else "login"
 
+    // Navigation host handles screen navigation
+
     val currentDestination = navBackStackEntry.value?.destination?.route
 
+    // top bar and bottom bar
     Scaffold(
         bottomBar = {
             // only show bottom bar if user is logged in and not on the login page
@@ -130,6 +139,7 @@ fun MainScreen(context: Context = LocalContext.current) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
@@ -139,8 +149,11 @@ fun MainScreen(context: Context = LocalContext.current) {
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
                         forceMode = CalendarMode.DAILY,
-                        onEventNavigate = { event ->
-                            navigateWithHistory(navController, navHistory, "eventView/${event.id}")
+                        onEventNavigate = {
+                                event -> navigateWithHistory(
+                            navController,
+                            navHistory,
+                            "eventView/${event.id}")
                         }
                     )
                 }
@@ -148,8 +161,11 @@ fun MainScreen(context: Context = LocalContext.current) {
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
                         forceMode = CalendarMode.WEEKLY,
-                        onEventNavigate = { event ->
-                            navigateWithHistory(navController, navHistory, "eventView/${event.id}")
+                        onEventNavigate = {
+                                event -> navigateWithHistory(
+                            navController,
+                            navHistory,
+                            "eventView/${event.id}")
                         }
                     )
                 }
@@ -157,17 +173,16 @@ fun MainScreen(context: Context = LocalContext.current) {
                     CalendarScreen(
                         calendarViewModel = calendarViewModel,
                         forceMode = CalendarMode.MONTHLY,
-                        onEventNavigate = { event ->
-                            navigateWithHistory(navController, navHistory, "eventView/${event.id}")
+                        onEventNavigate = {
+                                event -> navigateWithHistory(
+                            navController,
+                            navHistory,
+                            "eventView/${event.id}")
                         }
                     )
                 }
                 composable("accounts") {
-                    AccountsScreen(
-                        accountsViewModel = accountsViewModel,
-                        navController = navController,
-                        authViewModel = authViewModel   // <-- the only change
-                    )
+                    AccountsScreen(modifier = Modifier, accountsViewModel = accountsViewModel, navController = navController)
                 }
                 composable("login") {
                     LoginScreen(
@@ -185,10 +200,9 @@ fun MainScreen(context: Context = LocalContext.current) {
                     EventView(eventId, eventViewModel)
                 }
             }
-
             if (authState.isLoggedIn && currentDestination != "login" && currentDestination != "accounts") {
                 FloatingAccountButton(
-                    { navigateWithHistory(navController, navHistory, "accounts") },
+                    { navigateWithHistory(navController, navHistory, "accounts")},
                     modifier = Modifier.align(Alignment.TopEnd)
                 )
             }
