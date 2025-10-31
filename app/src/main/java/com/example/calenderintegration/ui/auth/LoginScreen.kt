@@ -104,30 +104,36 @@ fun LoginScreen(
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(y = (-150).dp) // move upward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)        // fixed height instead of fillMaxHeight
             ) {
-                Text(text = "Sign in with Google",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    text = "Sign in with Google",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
 
             // Second button slightly lower
             Button(
                 onClick = { /* log-in */ },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(y = 0.dp)    // move downward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
-                Text(text = "Sign in with Zoho",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    text = "Sign in with Zoho",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
 
 
@@ -135,30 +141,20 @@ fun LoginScreen(
             Button(
                 onClick = { /* log-in */ },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(y = 150.dp)    // move downward from center
                     .fillMaxWidth(0.75f)
                     .height(70.dp)
             ) {
-                Text(text = "Sign in with Outlook",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    text = "Sign in with Outlook",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
-
-        // Bottom decorative box
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(y = (-60).dp)
-                .fillMaxWidth(0.85f)
-                .fillMaxHeight(0.10f)
-                .background(
-                    color = Color(0xFFBBDEFB),
-                    shape = RoundedCornerShape(18.dp)
-                )
-        ) {}
     }
 }
 
