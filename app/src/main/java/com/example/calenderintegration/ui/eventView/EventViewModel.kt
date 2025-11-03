@@ -13,6 +13,7 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.example.calenderintegration.api.googleapi.CalendarApiService
 import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
+import com.example.calenderintegration.api.zohoapi.ZohoAccountRepository
 import kotlinx.coroutines.launch
 
 
@@ -24,7 +25,7 @@ class EventViewModel : ViewModel() {
     // Build your dependencies internally — no constructor arguments
     private val repo = EventRepository(
         calendarService = CalendarApiService,
-        accountsRepository = AccountsRepository(GoogleAccountRepository)
+        accountsRepository = AccountsRepository(GoogleAccountRepository, ZohoAccountRepository())
     )
     private val _cachedEvents = MutableStateFlow<List<Event>>(emptyList())
     val cachedEvents: StateFlow<List<Event>> = _cachedEvents

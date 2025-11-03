@@ -1,5 +1,7 @@
 package com.example.calenderintegration.ui.auth
 
+import android.app.Activity
+import android.app.Activity.RESULT_OK
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -17,11 +19,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import androidx.activity.result.IntentSenderRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +38,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 
 @Composable
@@ -41,6 +53,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+
     // Launcher for Google Sign-In IntentSender
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
@@ -48,9 +61,10 @@ fun LoginScreen(
         // You can handle post-sign-in result here if needed
     }
 
-    // Observe login state and navigate when successful
-    LaunchedEffect(authState.isLoggedIn) {
-        if (authState.isLoggedIn) {
+    
+    LaunchedEffect(Unit) {
+        authViewModel.loginEvent.collect {
+            Log.d("LoginScreen", "LOGIN SUCCESS → navigating")
             onLoginSuccess()
         }
     }
@@ -120,7 +134,11 @@ fun LoginScreen(
 
             // Second button slightly lower
             Button(
-                onClick = { /* log-in */ },
+                onClick = {
+                    val zohoAuthUrl = authViewModel.authRepository.getZohoLoginUrl()
+                    val browserIntent = Intent(Intent.ACTION_VIEW, zohoAuthUrl)
+                    context.startActivity(browserIntent)
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ),
