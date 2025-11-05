@@ -184,5 +184,3 @@ class CalendarRepository @Inject constructor(
 
     // endregion
 }
-
-

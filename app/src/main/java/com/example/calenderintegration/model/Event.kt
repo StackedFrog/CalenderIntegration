@@ -9,10 +9,12 @@ data class Event( //Needs to be as basic as possible when it comes to the struct
     var id: String,
     var summary: String,
     var description: String,
-    var start: String,
-    var end: String,
-    var location: String = "",
-    var calendarEmail: String
+    val location: String,
+    val start: String,
+    val end: String,
+    val calendarEmail: String,
+    val calendarId: String? = null,   // MUST exist
+    val isEditable: Boolean = true    // used by UI and repo guards
 )
 
 

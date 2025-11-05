@@ -274,7 +274,4 @@ object CalendarApiService {
             }
         }.start()
     }
-
-
-
 }
