@@ -19,6 +19,13 @@ import kotlinx.coroutines.launch
 
 import com.example.calenderintegration.repository.AccountsRepository
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 class EventViewModel : ViewModel() {
 
     private val repo = EventRepository(
@@ -44,6 +51,29 @@ class EventViewModel : ViewModel() {
         }
     }
 
+    fun formatDateTimeForDisplay(raw: String?): String {
+        if (raw.isNullOrBlank()) return ""
+        return try {
+            if (raw.contains('T')) {
+                val dateTime = OffsetDateTime.parse(raw, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+            } else {
+                LocalDate.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE)
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            }
+        } catch (e: Exception) {
+            raw
+        }
+    }
+
+    fun formatDateTimeForSave(date: LocalDate, time: LocalTime?): String {
+        return if (time == null) {
+            date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        } else {
+            val dateTime = ZonedDateTime.of(date, time, ZoneId.systemDefault())
+            dateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        }
+    }
 
 
     fun deleteEvent(context: Context, eventId: String) {

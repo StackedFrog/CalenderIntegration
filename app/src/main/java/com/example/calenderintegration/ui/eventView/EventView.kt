@@ -38,10 +38,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.calenderintegration.ui.accounts.AccountsViewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,10 +66,20 @@ fun EventView(
     var summary by remember(eventId) { mutableStateOf("") }
     var description by remember(eventId) { mutableStateOf("") }
     var location by remember(eventId) { mutableStateOf("") }
-    var start by remember(eventId) { mutableStateOf("") }
-    var end by remember(eventId) { mutableStateOf("") }
+
+    // --- Changed from raw strings to parsed values ---
+    var startDate by remember(eventId) { mutableStateOf<LocalDate?>(null) }
+    var startTime by remember(eventId) { mutableStateOf<LocalTime?>(null) }
+    var endDate by remember(eventId) { mutableStateOf<LocalDate?>(null) }
+    var endTime by remember(eventId) { mutableStateOf<LocalTime?>(null) }
+
     var selectedEmail by remember(eventId) { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
+
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
 
     // Load accounts once
     LaunchedEffect(Unit) {
@@ -75,8 +93,10 @@ fun EventView(
             summary = ""
             description = ""
             location = ""
-            start = ""
-            end = ""
+            startDate = null
+            startTime = null
+            endDate = null
+            endTime = null
             selectedEmail = ""
         } else {
             viewModel.loadEvent(context, eventId)
@@ -89,9 +109,21 @@ fun EventView(
             summary = e.summary
             description = e.description
             location = e.location
-            start = e.start
-            end = e.end
             selectedEmail = e.calendarEmail
+
+            // Parse and format start/end for display
+            try {
+                if (e.start.contains("T")) {
+                    val parsed = OffsetDateTime.parse(e.start)
+                    startDate = parsed.toLocalDate()
+                    startTime = parsed.toLocalTime()
+                }
+                if (e.end.contains("T")) {
+                    val parsed = OffsetDateTime.parse(e.end)
+                    endDate = parsed.toLocalDate()
+                    endTime = parsed.toLocalTime()
+                }
+            } catch (_: Exception) {}
         }
     }
 
@@ -112,8 +144,31 @@ fun EventView(
         labeledField("Summary", summary) { summary = it }
         labeledField("Description", description) { description = it }
         labeledField("Location", location) { location = it }
-        labeledField("Start", start) { start = it }
-        labeledField("End", end) { end = it }
+
+        // --- Replace raw Start/End text inputs ---
+        Text("Start", style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { showStartDatePicker = true }) {
+                Text(startDate?.toString() ?: "Select Date")
+            }
+            Button(onClick = { showStartTimePicker = true }) {
+                Text(startTime?.toString() ?: "Select Time")
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Text("End", style = MaterialTheme.typography.labelLarge)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { showEndDatePicker = true }) {
+                Text(endDate?.toString() ?: "Select Date")
+            }
+            Button(onClick = { showEndTimePicker = true }) {
+                Text(endTime?.toString() ?: "Select Time")
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
 
         Text("Select Calendar Account", style = MaterialTheme.typography.labelLarge)
         ExposedDropdownMenuBox(
@@ -149,6 +204,17 @@ fun EventView(
 
         Button(
             onClick = {
+                // Convert date/time into ISO 8601 format
+                val start = if (startDate != null && startTime != null)
+                    ZonedDateTime.of(startDate, startTime, ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                else ""
+
+                val end = if (endDate != null && endTime != null)
+                    ZonedDateTime.of(endDate, endTime, ZoneId.systemDefault())
+                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                else ""
+
                 val updated = state.event?.copy(
                     summary = summary,
                     description = description,
@@ -169,34 +235,58 @@ fun EventView(
 
                 if (isNew) {
                     viewModel.createEvent(context, updated) { success ->
-                        // Switch to main thread for UI actions
                         Handler(Looper.getMainLooper()).post {
-                            if (success) {
-                                Toast.makeText(context, "Event created", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack("dailyCalendar", inclusive = false)
-                            } else {
-                                Toast.makeText(context, "Failed to create event", Toast.LENGTH_SHORT).show()
-                            }
+                            Toast.makeText(
+                                context,
+                                if (success) "Event created" else "Failed to create event",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            if (success) navController.popBackStack("dailyCalendar", false)
                         }
                     }
                 } else {
                     viewModel.updateEvent(context, updated) { success ->
                         Handler(Looper.getMainLooper()).post {
-                            if (success) {
-                                Toast.makeText(context, "Event updated", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack("dailyCalendar", inclusive = false)
-                            } else {
-                                Toast.makeText(context, "Failed to update event", Toast.LENGTH_SHORT).show()
-                            }
+                            Toast.makeText(
+                                context,
+                                if (success) "Event updated" else "Failed to update event",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            if (success) navController.popBackStack("dailyCalendar", false)
                         }
                     }
                 }
-
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text("Save Event")
         }
+    }
+
+    // --- Material Pickers ---
+    if (showStartDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            onDateChange = { startDate = it; showStartDatePicker = false }
+        )
+    }
+    if (showStartTimePicker) {
+        TimePickerDialog(
+            onDismissRequest = { showStartTimePicker = false },
+            onTimeChange = { startTime = it; showStartTimePicker = false }
+        )
+    }
+    if (showEndDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            onDateChange = { endDate = it; showEndDatePicker = false }
+        )
+    }
+    if (showEndTimePicker) {
+        TimePickerDialog(
+            onDismissRequest = { showEndTimePicker = false },
+            onTimeChange = { endTime = it; showEndTimePicker = false }
+        )
     }
 }
 
@@ -216,3 +306,42 @@ private fun labeledField(label: String, value: String, onValueChange: (String) -
     )
     Spacer(Modifier.height(8.dp))
 }
+@Composable
+fun DatePickerDialog(onDismissRequest: () -> Unit, onDateChange: (LocalDate) -> Unit) {
+    val datePickerState = rememberDatePickerState()
+    androidx.compose.material3.DatePickerDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(onClick = {
+                datePickerState.selectedDateMillis?.let {
+                    onDateChange(
+                        Instant.ofEpochMilli(it)
+                        .atZone(ZoneId.systemDefault()).toLocalDate())
+                }
+            }) { Text("OK") }
+        }
+    ) {
+        androidx.compose.material3.DatePicker(state = datePickerState)
+    }
+}
+
+@Composable
+fun TimePickerDialog(onDismissRequest: () -> Unit, onTimeChange: (LocalTime) -> Unit) {
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val dialog = android.app.TimePickerDialog(
+            context,
+            { _, hour, minute ->
+                onTimeChange(LocalTime.of(hour, minute))
+                onDismissRequest()
+            },
+            LocalTime.now().hour,
+            LocalTime.now().minute,
+            true
+        )
+        dialog.show()
+
+        onDispose { dialog.dismiss() }
+    }
+}
+
