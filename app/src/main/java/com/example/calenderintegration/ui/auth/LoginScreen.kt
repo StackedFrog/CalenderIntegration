@@ -138,6 +138,7 @@ fun LoginScreen(
                     val zohoAuthUrl = authViewModel.authRepository.getZohoLoginUrl()
                     val browserIntent = Intent(Intent.ACTION_VIEW, zohoAuthUrl)
                     context.startActivity(browserIntent)
+                    // new stuff
                     onLoginSuccess()
                 },
                 colors = ButtonDefaults.buttonColors(
