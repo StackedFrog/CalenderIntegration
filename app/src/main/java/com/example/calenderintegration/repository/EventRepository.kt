@@ -91,21 +91,16 @@ class EventRepository @Inject constructor(
         }
     }
 
-    /** Creates a new event and refreshes cache. */
-    fun createEvent(context: Context, event: Event, onResult: (Boolean) -> Unit) {
-        val account = accountsRepository.getGoogleAccounts(context)?.firstOrNull()
-        if (account == null) {
-            Log.e("EventRepository", "Cannot create event: No saved accounts")
-            onResult(false)
-            return
-        }
 
-        calendarService.createCalendarEvent(context, account, event) { success ->
-            if (success) {
-                Log.d("EventRepository", "Event created successfully. Refreshing cache.")
-                runBlocking { loadAllEvents(context) }
-            }
-            onResult(success)
-        }
+    fun createEvent(context: Context, event: Event, callback: (Boolean) -> Unit) {
+        val accounts = accountsRepository.getGoogleAccounts(context)
+        val account = accounts.firstOrNull { it.email == event.calendarEmail }
+            ?: return callback(false)
+
+        CalendarApiService.createCalendarEvent(context, account, event, callback)
     }
+
+
+
+
 }

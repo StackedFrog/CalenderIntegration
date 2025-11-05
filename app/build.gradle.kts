@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.navigation.common.ktx)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -134,6 +135,7 @@ dependencies {
 
 
 
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
 
 
 

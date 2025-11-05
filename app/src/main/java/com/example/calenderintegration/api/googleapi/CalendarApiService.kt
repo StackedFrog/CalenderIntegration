@@ -92,7 +92,6 @@ object CalendarApiService {
     }
 
 
-
     fun createCalendarEvent(
         context: Context,
         account: GoogleAccount,
@@ -101,16 +100,23 @@ object CalendarApiService {
     ) {
         val client = OkHttpClient()
 
+        // Default to today's date/time if missing
+        val now = java.time.LocalDateTime.now()
+        val today = now.toLocalDate().toString() // "2025-11-05"
+        val startTime = if (event.start.isNotBlank()) event.start else "${today}T09:00:00Z"
+        val endTime = if (event.end.isNotBlank()) event.end else "${today}T10:00:00Z"
+
         val jsonBody = JSONObject().apply {
-            put("summary", event.summary)
-            put("description", event.description)
-            put("location", event.location)
+            put("summary", event.summary.ifBlank { "Untitled Event" })
+            if (event.description.isNotBlank()) put("description", event.description)
+            if (event.location.isNotBlank()) put("location", event.location)
+
             put("start", JSONObject().apply {
-                put("dateTime", event.start)
+                put("dateTime", startTime)
                 put("timeZone", "UTC")
             })
             put("end", JSONObject().apply {
-                put("dateTime", event.end)
+                put("dateTime", endTime)
                 put("timeZone", "UTC")
             })
         }
@@ -127,26 +133,24 @@ object CalendarApiService {
         Thread {
             try {
                 client.newCall(request).execute().use { response ->
-                    if (response.code == 401) {
-                        Log.w("CalendarAPI", "Token expired, refreshing for ${account.email}")
-                        val refreshed = runBlocking {
-                            GoogleSignIn.refreshAccessToken(context, account)
+                    when (response.code) {
+                        200, 201 -> {
+                            Log.d("CalendarAPI", "Event created successfully for ${account.email}")
+                            onResult(true)
                         }
-                        if (refreshed != null) {
-                            createCalendarEvent(context, refreshed, event, onResult)
-                            return@Thread
-                        } else {
+                        401 -> {
+                            Log.w("CalendarAPI", "Token expired, refreshing for ${account.email}")
+                            val refreshed = runBlocking { GoogleSignIn.refreshAccessToken(context, account) }
+                            if (refreshed != null) {
+                                createCalendarEvent(context, refreshed, event, onResult)
+                            } else {
+                                onResult(false)
+                            }
+                        }
+                        else -> {
+                            Log.e("CalendarAPI", "Failed: HTTP ${response.code} - ${response.body?.string()}")
                             onResult(false)
-                            return@Thread
                         }
-                    }
-
-                    if (response.isSuccessful) {
-                        Log.d("CalendarAPI", "Event created successfully for ${account.email}")
-                        onResult(true)
-                    } else {
-                        Log.e("CalendarAPI", "Failed: HTTP ${response.code} - ${response.body?.string()}")
-                        onResult(false)
                     }
                 }
             } catch (e: Exception) {

@@ -23,14 +23,25 @@ class AccountsViewModel @Inject constructor(
 
     fun loadAllAccounts(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val google = accountsRepository.getGoogleAccounts(context)
-            _accountsState.update { it.copy(google = google, loading = false, error = null) }
+            // Currently only Google, but can add more later
+            val googleAccounts = accountsRepository.getGoogleAccounts(context)
+
+            val combined = buildList {
+                addAll(googleAccounts.map { AccountItem("Google", it.email) })
+                // Future expansion example:
+                // addAll(outlookRepository.getOutlookAccounts(context).map { AccountItem("Outlook", it.email) })
+            }
+
+            _accountsState.update {
+                it.copy(accounts = combined, loading = false, error = null)
+            }
         }
     }
 
     fun openProviderPicker() {
         _accountsState.update { it.copy(showProviderPicker = true) }
     }
+
     fun dismissProviderPicker() {
         _accountsState.update { it.copy(showProviderPicker = false) }
     }
@@ -38,6 +49,7 @@ class AccountsViewModel @Inject constructor(
     fun requestDelete(email: String) {
         _accountsState.update { it.copy(showDeleteDialog = true, pendingDeleteEmail = email) }
     }
+
     fun cancelDelete() {
         _accountsState.update { it.copy(showDeleteDialog = false, pendingDeleteEmail = null) }
     }
@@ -46,20 +58,18 @@ class AccountsViewModel @Inject constructor(
         val email = _accountsState.value.pendingDeleteEmail ?: return
         viewModelScope.launch(Dispatchers.IO) {
             accountsRepository.deleteGoogleAccount(context, email)
-            val refreshed = accountsRepository.getGoogleAccounts(context)
-            _accountsState.update {
-                it.copy(
-                    google = refreshed,
-                    showDeleteDialog = false,
-                    pendingDeleteEmail = null
-                )
-            }
+            loadAllAccounts(context) // refresh after deletion
         }
     }
 }
 
+data class AccountItem(
+    val provider: String,   // e.g. "Google", "Outlook"
+    val email: String
+)
+
 data class AccountsState(
-    val google: List<GoogleAccount> = emptyList(),
+    val accounts: List<AccountItem> = emptyList(),
     val loading: Boolean = false,
     val error: String? = null,
     val showDeleteDialog: Boolean = false,

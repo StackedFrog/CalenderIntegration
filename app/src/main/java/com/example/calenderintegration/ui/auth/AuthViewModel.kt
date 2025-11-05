@@ -26,15 +26,22 @@ class AuthViewModel @Inject constructor(
     /** Called at app startup to restore any saved login session. */
     fun initialize(context: Context) {
         val savedAccounts = authRepository.loadSavedAccounts(context)
-        currentAccount = savedAccounts.firstOrNull()
+        val restoredAccount = savedAccounts.firstOrNull()
 
-        _authState.update {
-            it.copy(
-                isLoggedIn = currentAccount != null,
+        _authState.update { current ->
+            current.copy(
+                // Preserve login state if already logged in
+                isLoggedIn = current.isLoggedIn || restoredAccount != null,
                 isInitialized = true
             )
         }
+
+        if (restoredAccount != null) {
+            currentAccount = restoredAccount
+        }
     }
+
+
 
     /** Handles interactive Google Sign-In flow. */
     fun logIn(context: Context, startIntentSender: (IntentSenderRequest) -> Unit) {
@@ -42,21 +49,29 @@ class AuthViewModel @Inject constructor(
             _authState.update { it.copy(isLoading = true, error = null) }
             try {
                 val result = authRepository.logIn(context, startIntentSender)
-                currentAccount = result
+                if (result != null) currentAccount = result
+
                 _authState.update {
                     it.copy(
-                        isLoggedIn = result != null,
+                        isLoggedIn = result != null || it.isLoggedIn,
                         isLoading = false,
                         error = null
                     )
                 }
             } catch (e: Exception) {
-                _authState.update {
-                    it.copy(isLoading = false, error = e.message)
+                val isCancelled = e is androidx.credentials.exceptions.GetCredentialCancellationException
+                _authState.update { current ->
+                    current.copy(
+                        isLoading = false,
+                        error = if (!isCancelled) e.message else null,
+                        isLoggedIn = if (isCancelled) current.isLoggedIn else false
+                    )
                 }
             }
         }
     }
+
+
 
     /** Clears session and logs out the active account. */
     fun logOut(context: Context) {
@@ -73,6 +88,7 @@ class AuthViewModel @Inject constructor(
         _authState.update { it.copy(isLoggedIn = false) }
     }
 }
+
 
 data class AuthState(
     val isLoggedIn: Boolean = false,
