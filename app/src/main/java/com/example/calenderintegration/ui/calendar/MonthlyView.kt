@@ -8,7 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,16 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calenderintegration.model.Event
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.Arrangement
+import java.time.DayOfWeek
+import java.time.temporal.WeekFields
+import java.util.*
 
 @Composable
 fun MonthlyView(
@@ -36,7 +35,8 @@ fun MonthlyView(
     modifier: Modifier = Modifier
 ) {
     val currentMonth = remember { LocalDate.now().withDayOfMonth(1) }
-    val daysInMonth = remember { currentMonth.lengthOfMonth() }
+    val today = LocalDate.now()
+    val daysInMonth = currentMonth.lengthOfMonth()
     val days = remember { (1..daysInMonth).map { currentMonth.withDayOfMonth(it) } }
 
     val monthEvents = remember(uiState.allEvents) {
@@ -45,21 +45,45 @@ fun MonthlyView(
 
     val selectedDay = remember { mutableStateOf<LocalDate?>(null) }
 
+    val daysOfWeek = DayOfWeek.values()
+        .toList()
+        .map { it.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()) }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        // Month and year title
         Text(
             text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy")),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = Color(0xFF0D47A1),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Calendar grid (7 columns)
+        // Weekday headers (Sun, Mon, ...)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            daysOfWeek.forEach { dayName ->
+                Text(
+                    text = dayName.uppercase(),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                    fontSize = 12.sp,
+                    color = Color(0xFF1565C0),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Calendar grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.fillMaxWidth(),
@@ -72,12 +96,18 @@ fun MonthlyView(
                     calendarViewModel.getEventsForDay(day)
                 }
 
+                val isToday = day == today
+                val isSelected = day == selectedDay.value
+
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
                         .background(
-                            if (day == selectedDay.value) Color(0xFFBBDEFB)
-                            else Color(0xFFE3F2FD),
+                            when {
+                                isSelected -> Color(0xFFBBDEFB)
+                                isToday -> Color(0xFF90CAF9)
+                                else -> Color(0xFFE3F2FD)
+                            },
                             shape = RoundedCornerShape(8.dp)
                         )
                         .clickable { selectedDay.value = day }
@@ -85,19 +115,28 @@ fun MonthlyView(
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Top
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             text = day.dayOfMonth.toString(),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 14.sp,
+                            color = if (isToday) Color(0xFF0D47A1) else Color.Black
                         )
+
                         if (eventsForDay.isNotEmpty()) {
-                            Text(
-                                text = "${eventsForDay.size} events",
-                                fontSize = 10.sp,
-                                color = Color.Gray
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.End)
+                                    .background(Color(0xFF1976D2), shape = RoundedCornerShape(50))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = eventsForDay.size.toString(),
+                                    fontSize = 10.sp,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
@@ -106,6 +145,7 @@ fun MonthlyView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Events list for the selected day
         selectedDay.value?.let { day ->
             val events = calendarViewModel.getEventsForDay(day)
             Text(
