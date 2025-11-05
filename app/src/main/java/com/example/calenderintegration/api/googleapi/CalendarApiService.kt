@@ -72,7 +72,8 @@ object CalendarApiService {
                                     start = startTime,
                                     end = endTime,
                                     location = obj.optString("location", ""),
-                                    calendarEmail = account.email
+                                    calendarEmail = account.email,
+                                    etag = obj.optString("etag", "google-doesnt-need-etag")
                                 )
                             )
                         }
