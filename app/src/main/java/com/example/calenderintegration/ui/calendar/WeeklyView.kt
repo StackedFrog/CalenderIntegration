@@ -97,7 +97,7 @@ private fun DayColumn(
                 text = date.format(formatter),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondary
+                    color = MaterialTheme.colorScheme.primary
                 ),
                 textAlign = TextAlign.Center
             )

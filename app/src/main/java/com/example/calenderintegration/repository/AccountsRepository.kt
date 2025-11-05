@@ -17,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class AccountsRepository @Inject constructor(
     private val googleStore: GoogleAccountRepository,
-    private val zohoStore: ZohoAccountRepository
+    // private val zohoStore: ZohoAccountRepository
 ) {
 
 
@@ -34,14 +34,14 @@ class AccountsRepository @Inject constructor(
         googleStore.saveAccounts(context, newList)
     }
 
-    // ------------------ Zoho ----------------
-    fun getZohoAccounts(context: Context): List<ZohoAccount> {
-        return zohoStore.loadAccounts(context)
-    }
-
-    fun deleteZohoAccount(context: Context, email: String) {
-        val current = zohoStore.loadAccounts(context).toMutableList()
-        val newList = current.filterNot { it.email.equals(email, ignoreCase = true) }
-        zohoStore.saveAccounts(context, newList)
-    }
+//    // ------------------ Zoho ----------------
+//    fun getZohoAccounts(context: Context): List<ZohoAccount> {
+//        return zohoStore.loadAccounts(context)
+//    }
+//
+//    fun deleteZohoAccount(context: Context, email: String) {
+//        val current = zohoStore.loadAccounts(context).toMutableList()
+//        val newList = current.filterNot { it.email.equals(email, ignoreCase = true) }
+//        zohoStore.saveAccounts(context, newList)
+//    }
 }

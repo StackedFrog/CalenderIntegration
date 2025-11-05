@@ -30,7 +30,7 @@ class EventViewModel : ViewModel() {
 
     private val repo = EventRepository(
         calendarService = CalendarApiService,
-        accountsRepository = AccountsRepository(GoogleAccountRepository)
+        accountsRepository = AccountsRepository(googleStore = GoogleAccountRepository)
     )
 
     private val _eventState = MutableStateFlow(EventState())
@@ -113,7 +113,8 @@ class EventViewModel : ViewModel() {
             location = "",
             start = "",
             end = "",
-            calendarEmail = ""
+            calendarEmail = "",
+            etag = ""
         )
     }
 }

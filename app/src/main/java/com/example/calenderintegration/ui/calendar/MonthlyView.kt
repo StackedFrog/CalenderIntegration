@@ -58,7 +58,7 @@ fun MonthlyView(
         Text(
             text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy")),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = Color(0xFF0D47A1),
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -75,7 +75,7 @@ fun MonthlyView(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),
                     fontSize = 12.sp,
-                    color = Color(0xFF1565C0),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -104,9 +104,9 @@ fun MonthlyView(
                         .aspectRatio(1f)
                         .background(
                             when {
-                                isSelected -> Color(0xFFBBDEFB)
-                                isToday -> Color(0xFF90CAF9)
-                                else -> Color(0xFFE3F2FD)
+                                isSelected -> MaterialTheme.colorScheme.primaryContainer
+                                isToday -> MaterialTheme.colorScheme.primaryContainer
+                                else -> MaterialTheme.colorScheme.secondaryContainer
                             },
                             shape = RoundedCornerShape(8.dp)
                         )
@@ -121,20 +121,24 @@ fun MonthlyView(
                             text = day.dayOfMonth.toString(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = if (isToday) Color(0xFF0D47A1) else Color.Black
+                            color =
+                                if (isToday) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSecondaryContainer
                         )
 
                         if (eventsForDay.isNotEmpty()) {
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.End)
-                                    .background(Color(0xFF1976D2), shape = RoundedCornerShape(50))
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = RoundedCornerShape(50))
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = eventsForDay.size.toString(),
                                     fontSize = 10.sp,
-                                    color = Color.White
+                                    color = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }
@@ -151,12 +155,12 @@ fun MonthlyView(
             Text(
                 text = "Events on ${day.format(DateTimeFormatter.ofPattern("MMM dd"))}",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF0D47A1),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
             if (events.isEmpty()) {
-                Text("No events", color = Color.Gray)
+                Text("No events", color = MaterialTheme.colorScheme.onSurface)
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(events) { event ->
@@ -165,13 +169,15 @@ fun MonthlyView(
                                 .fillMaxWidth()
                                 .clickable { onEventClick(event) },
                             elevation = CardDefaults.cardElevation(4.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer)
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
                                     event.summary,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = Color(0xFF0D47A1)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                                 if (event.description.isNotBlank()) {
                                     Text(
@@ -183,7 +189,7 @@ fun MonthlyView(
                                 Text(
                                     "${event.start} - ${event.end}",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF1565C0)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
