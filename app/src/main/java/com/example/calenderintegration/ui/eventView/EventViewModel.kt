@@ -13,22 +13,19 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.example.calenderintegration.api.googleapi.CalendarApiService
 import com.example.calenderintegration.api.googleapi.GoogleAccountRepository
-import com.example.calenderintegration.api.zohoapi.ZohoAccountRepository
+import com.example.calenderintegration.model.GoogleAccount
 import kotlinx.coroutines.launch
 
 
 import com.example.calenderintegration.repository.AccountsRepository
 import kotlinx.coroutines.launch
-
 class EventViewModel : ViewModel() {
 
-    // Build your dependencies internally — no constructor arguments
     private val repo = EventRepository(
         calendarService = CalendarApiService,
-        accountsRepository = AccountsRepository(GoogleAccountRepository, ZohoAccountRepository())
+        accountsRepository = AccountsRepository(GoogleAccountRepository)
     )
-    private val _cachedEvents = MutableStateFlow<List<Event>>(emptyList())
-    val cachedEvents: StateFlow<List<Event>> = _cachedEvents
+
     private val _eventState = MutableStateFlow(EventState())
     val eventState: StateFlow<EventState> = _eventState
 
@@ -47,12 +44,7 @@ class EventViewModel : ViewModel() {
         }
     }
 
-    fun updateEvent(context: Context, event: Event) {
-        repo.updateEvent(context, event) { success ->
-            _eventState.value = if (success) EventState(event = event)
-            else EventState(error = "Failed to update")
-        }
-    }
+
 
     fun deleteEvent(context: Context, eventId: String) {
         repo.deleteEvent(context, eventId) { success ->
@@ -62,9 +54,41 @@ class EventViewModel : ViewModel() {
         }
     }
 
+    fun createEvent(context: Context, event: Event, onResult: (Boolean) -> Unit) {
+        repo.createEvent(context, event) { success ->
+            _eventState.value = if (success) EventState(event = event)
+            else EventState(error = "Failed to create")
+            onResult(success)
+        }
+    }
+
+    fun updateEvent(context: Context, event: Event, onResult: (Boolean) -> Unit) {
+        repo.updateEvent(context, event) { success ->
+            _eventState.value = if (success) EventState(event = event)
+            else EventState(error = "Failed to update")
+            onResult(success)
+        }
+    }
+
+    fun resetEventState() {
+        _eventState.value = EventState(event = null, error = null)
+    }
+
+
+    fun createEmptyEvent(): Event {
+        return Event(
+            id = "",
+            summary = "",
+            description = "",
+            location = "",
+            start = "",
+            end = "",
+            calendarEmail = ""
+        )
+    }
+}
 
 data class EventState(
     val event: Event? = null,
     val error: String? = null
 )
-}

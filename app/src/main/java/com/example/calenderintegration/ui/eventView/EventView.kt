@@ -5,11 +5,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -35,45 +40,50 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.calenderintegration.ui.accounts.AccountsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventView(
     eventId: String?,
     viewModel: EventViewModel = hiltViewModel(),
+    accountsViewModel: AccountsViewModel = hiltViewModel(),
+    navController: NavController,
     context: Context = LocalContext.current
 ) {
     val state by viewModel.eventState.collectAsState()
+    val accountsState by accountsViewModel.accountsState.collectAsState()
 
-    var summary by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
-    var start by remember { mutableStateOf("") }
-    var end by remember { mutableStateOf("") }
-    var calendarEmail by remember { mutableStateOf("") }
+    var summary by remember(eventId) { mutableStateOf("") }
+    var description by remember(eventId) { mutableStateOf("") }
+    var location by remember(eventId) { mutableStateOf("") }
+    var start by remember(eventId) { mutableStateOf("") }
+    var end by remember(eventId) { mutableStateOf("") }
+    var selectedEmail by remember(eventId) { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
 
-    // --- Move this here ---
-    @Composable
-    fun labeledField(label: String, value: String, onValueChange: (String) -> Unit) {
-        Text(label, style = MaterialTheme.typography.labelLarge)
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .heightIn(min = 40.dp)
-                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
-                .padding(8.dp),
-            textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground)
-        )
-        Spacer(Modifier.height(8.dp))
+    // Load accounts once
+    LaunchedEffect(Unit) {
+        accountsViewModel.loadAllAccounts(context)
     }
-    // ---
 
+    // Load or reset event data
     LaunchedEffect(eventId) {
-        if (eventId != null) viewModel.loadEvent(context, eventId)
+        if (eventId.isNullOrEmpty()) {
+            viewModel.resetEventState()
+            summary = ""
+            description = ""
+            location = ""
+            start = ""
+            end = ""
+            selectedEmail = ""
+        } else {
+            viewModel.loadEvent(context, eventId)
+        }
     }
 
+    // When event loads, update UI fields
     LaunchedEffect(state.event) {
         state.event?.let { e ->
             summary = e.summary
@@ -81,7 +91,7 @@ fun EventView(
             location = e.location
             start = e.start
             end = e.end
-            calendarEmail = e.calendarEmail
+            selectedEmail = e.calendarEmail
         }
     }
 
@@ -89,14 +99,13 @@ fun EventView(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start
+        verticalArrangement = Arrangement.Top
     ) {
         Text("Event Editor", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(16.dp))
 
-        if (state.error != null) {
-            Text("Error: ${state.error}", color = MaterialTheme.colorScheme.error)
+        state.error?.let {
+            Text("Error: $it", color = MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(8.dp))
         }
 
@@ -105,7 +114,36 @@ fun EventView(
         labeledField("Location", location) { location = it }
         labeledField("Start", start) { start = it }
         labeledField("End", end) { end = it }
-        labeledField("Calendar Email", calendarEmail) { calendarEmail = it }
+
+        Text("Select Calendar Account", style = MaterialTheme.typography.labelLarge)
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            TextField(
+                readOnly = true,
+                value = selectedEmail,
+                onValueChange = {},
+                label = { Text("Account") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                accountsState.accounts.forEach { account ->
+                    DropdownMenuItem(
+                        text = { Text(account.email) },
+                        onClick = {
+                            selectedEmail = account.email
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -117,17 +155,64 @@ fun EventView(
                     location = location,
                     start = start,
                     end = end,
-                    calendarEmail = calendarEmail
+                    calendarEmail = selectedEmail
+                ) ?: viewModel.createEmptyEvent().copy(
+                    summary = summary,
+                    description = description,
+                    location = location,
+                    start = start,
+                    end = end,
+                    calendarEmail = selectedEmail
                 )
 
-                if (updated != null) {
-                    viewModel.updateEvent(context, updated)
+                val isNew = updated.id.isBlank()
+
+                if (isNew) {
+                    viewModel.createEvent(context, updated) { success ->
+                        // Switch to main thread for UI actions
+                        Handler(Looper.getMainLooper()).post {
+                            if (success) {
+                                Toast.makeText(context, "Event created", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack("dailyCalendar", inclusive = false)
+                            } else {
+                                Toast.makeText(context, "Failed to create event", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } else {
+                    viewModel.updateEvent(context, updated) { success ->
+                        Handler(Looper.getMainLooper()).post {
+                            if (success) {
+                                Toast.makeText(context, "Event updated", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack("dailyCalendar", inclusive = false)
+                            } else {
+                                Toast.makeText(context, "Failed to update event", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
+
             },
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Save Changes to Google")
+            Text("Save Event")
         }
     }
 }
 
+@Composable
+private fun labeledField(label: String, value: String, onValueChange: (String) -> Unit) {
+    Text(label, style = MaterialTheme.typography.labelLarge)
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .heightIn(min = 40.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
+            .padding(8.dp),
+        textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground)
+    )
+    Spacer(Modifier.height(8.dp))
+}

@@ -10,13 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,6 +32,10 @@ import androidx.navigation.NavHostController
 import com.example.calenderintegration.ui.auth.AuthViewModel
 import com.example.calenderintegration.ui.components.ConfirmDialog
 import com.example.calenderintegration.ui.components.ProviderPickerDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 
 @Composable
 fun AccountsScreen(
@@ -85,14 +82,15 @@ fun AccountsScreen(
             )
 
             // Google section
-            SectionHeader(text = "Google")
-            if (state.google.isEmpty()) {
-                EmptyRow(hint = "No Google accounts yet")
+// Accounts section CHANGED THIS BY SEBI IDK
+            SectionHeader(text = "Accounts")
+            if (state.accounts.isEmpty()) {
+                EmptyRow(hint = "No accounts yet")
             } else {
                 LazyColumn {
-                    items(state.google) { acc ->
+                    items(state.accounts) { acc ->
                         AccountRow(
-                            primary = acc.displayName.ifBlank { acc.email.substringBefore("@") },
+                            primary = acc.provider,
                             secondary = acc.email,
                             onClick = { accountsViewModel.requestDelete(acc.email) }
                         )
@@ -100,6 +98,7 @@ fun AccountsScreen(
                     }
                 }
             }
+
 
             Spacer(Modifier.height(12.dp))
 
@@ -197,5 +196,4 @@ private fun EmptyRow(hint: String) {
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
-
 }
