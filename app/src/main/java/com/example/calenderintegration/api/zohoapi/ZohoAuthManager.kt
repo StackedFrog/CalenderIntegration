@@ -36,7 +36,7 @@ class ZohoAuthManager @Inject constructor() {
 
     fun exchangeToken(
         authCode: String,
-        onSuccess: (String) -> Unit,
+        onSuccess: (String, String) -> Unit, // returns accessToken and email
         onError: (Exception) -> Unit
     ) {
         val formBody = FormBody.Builder()
@@ -59,15 +59,61 @@ class ZohoAuthManager @Inject constructor() {
                     val json = JSONObject(it.body?.string() ?: "")
                     accessToken = json.optString("access_token")
                     refreshToken = json.optString("refresh_token")
-                    val expiresIn = json.optLong("expires_in", 3600) // default 1 hour
+                    val expiresIn = json.optLong("expires_in", 3600)
                     expiryTime = System.currentTimeMillis() + expiresIn * 1000
-                    Log.d("ZohoAuth", "Access token received: $accessToken")
-                    Log.d("ZohoAuth", "Refresh token received: $refreshToken")
-                    onSuccess(accessToken!!)
+
+                    if (accessToken.isNullOrEmpty()) {
+                        onError(Exception("No access token returned"))
+                        return
+                    }
+
+                    // Once we have the token, fetch user info to get the email
+                    fetchUserEmail(accessToken!!, { email ->
+                        Log.d("ZohoAuth", "Zoho login success. Email: $email")
+                        onSuccess(accessToken!!, email)
+                    }, onError)
                 }
             }
         })
     }
+
+    /**
+     * Pablo: Added a function to fetch user email
+     */
+    fun fetchUserEmail(
+        token: String,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val request = Request.Builder()
+            .url("https://accounts.zoho.eu/oauth/user/info")
+            .addHeader("Authorization", "Zoho-oauthtoken $token")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) = onError(e)
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    try {
+                        val json = JSONObject(it.body?.string() ?: "")
+                        // Try multiple possible keys
+                        val email = json.optString("Email")
+                            .ifEmpty { json.optString("email") }
+                            .ifEmpty { json.optString("EmailAddress") }
+
+                        if (email.isEmpty()) {
+                            onError(Exception("Failed to retrieve email from Zoho user info"))
+                        } else {
+                            onSuccess(email)
+                        }
+                    } catch (e: Exception) {
+                        onError(e)
+                    }
+                }
+            }
+        })
+    }
+
 
     private fun refreshAccessToken(
         onSuccess: (String) -> Unit,

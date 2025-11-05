@@ -19,23 +19,23 @@ import kotlinx.coroutines.launch
 
 import com.example.calenderintegration.repository.AccountsRepository
 import kotlinx.coroutines.launch
-class EventViewModel : ViewModel() {
 
-    private val repo = EventRepository(
-        calendarService = CalendarApiService,
-        accountsRepository = AccountsRepository(GoogleAccountRepository)
-    )
+@HiltViewModel
+class EventViewModel @Inject constructor(
+    val eventRepository: EventRepository
+): ViewModel() {
+
 
     private val _eventState = MutableStateFlow(EventState())
     val eventState: StateFlow<EventState> = _eventState
 
     fun loadEvent(context: Context, eventId: String) {
         viewModelScope.launch {
-            if (repo.cachedEvents.value.isEmpty()) {
-                repo.loadAllEvents(context)
+            if (eventRepository.cachedEvents.value.isEmpty()) {
+                eventRepository.loadAllEvents(context)
             }
 
-            val event = repo.getEventById(eventId)
+            val event = eventRepository.getEventById(eventId)
             _eventState.value = if (event != null) {
                 EventState(event = event)
             } else {
@@ -47,7 +47,7 @@ class EventViewModel : ViewModel() {
 
 
     fun deleteEvent(context: Context, eventId: String) {
-        repo.deleteEvent(context, eventId) { success ->
+        eventRepository.deleteEvent(context, eventId) { success ->
             _eventState.value = EventState(
                 error = if (success) "Event deleted" else "Delete failed"
             )
@@ -55,7 +55,7 @@ class EventViewModel : ViewModel() {
     }
 
     fun createEvent(context: Context, event: Event, onResult: (Boolean) -> Unit) {
-        repo.createEvent(context, event) { success ->
+        eventRepository.createEvent(context, event) { success ->
             _eventState.value = if (success) EventState(event = event)
             else EventState(error = "Failed to create")
             onResult(success)
@@ -63,7 +63,7 @@ class EventViewModel : ViewModel() {
     }
 
     fun updateEvent(context: Context, event: Event, onResult: (Boolean) -> Unit) {
-        repo.updateEvent(context, event) { success ->
+        eventRepository.updateEvent(context, event) { success ->
             _eventState.value = if (success) EventState(event = event)
             else EventState(error = "Failed to update")
             onResult(success)
@@ -83,7 +83,8 @@ class EventViewModel : ViewModel() {
             location = "",
             start = "",
             end = "",
-            calendarEmail = ""
+            calendarEmail = "",
+            etag = ""
         )
     }
 }

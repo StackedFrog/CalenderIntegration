@@ -140,6 +140,7 @@ fun LoginScreen(
                     context.startActivity(browserIntent)
                     // new stuff
                     onLoginSuccess()
+                    authState.isLoggedIn = true
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer

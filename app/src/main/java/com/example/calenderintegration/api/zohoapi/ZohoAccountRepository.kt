@@ -2,6 +2,8 @@ package com.example.calenderintegration.api.zohoapi
 
 import android.content.Context
 import com.example.calenderintegration.model.ZohoAccount
+import org.json.JSONArray
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,21 +15,48 @@ import javax.inject.Singleton
 @Singleton
 class ZohoAccountRepository @Inject constructor() {
 
-    /** Load saved Zoho accounts from storage */
+    private val PREFS_NAME = "zoho_accounts_prefs"
+    private val KEY_ACCOUNTS = "accounts"
+
     fun loadAccounts(context: Context): List<ZohoAccount> {
-        // Implementation depends on SharedPreferences, Room, or other storage
-        // Placeholder example
-        return emptyList()
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val jsonString = prefs.getString(KEY_ACCOUNTS, null) ?: return emptyList()
+
+        val jsonArray = JSONArray(jsonString)
+        val accounts = mutableListOf<ZohoAccount>()
+        for (i in 0 until jsonArray.length()) {
+            val obj = jsonArray.getJSONObject(i)
+            accounts.add(
+                ZohoAccount(
+                    email = obj.getString("email"),
+                    accessToken = obj.getString("accessToken"),
+                    refreshToken = obj.optString("refreshToken", null),
+                    expiresIn = obj.getLong("expiresIn")
+                )
+            )
+        }
+        return accounts
     }
 
-    /** Save Zoho accounts to storage */
     fun saveAccounts(context: Context, accounts: List<ZohoAccount>) {
-        // Implementation depends on SharedPreferences, Room, or other storage
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val jsonArray = JSONArray()
+        accounts.forEach { account ->
+            val obj = JSONObject()
+            obj.put("email", account.email)
+            obj.put("accessToken", account.accessToken)
+            obj.put("refreshToken", account.refreshToken)
+            obj.put("expiresIn", account.expiresIn)
+            jsonArray.put(obj)
+        }
+        prefs.edit().putString(KEY_ACCOUNTS, jsonArray.toString()).apply()
     }
 
-    /** Add a new Zoho account to storage */
-    fun addAccount(context: Context, account: ZohoAccount)
-    {
-        //
+    fun addAccount(context: Context, account: ZohoAccount) {
+        val accounts = loadAccounts(context).toMutableList()
+        // Replace if email already exists
+        accounts.removeAll { it.email == account.email }
+        accounts.add(account)
+        saveAccounts(context, accounts)
     }
 }

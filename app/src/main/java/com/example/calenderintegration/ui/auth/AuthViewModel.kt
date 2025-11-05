@@ -107,7 +107,7 @@ class AuthViewModel @Inject constructor(
 }
 
 data class AuthState(
-    val isLoggedIn: Boolean = false,
+    var isLoggedIn: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val isInitialized: Boolean = false

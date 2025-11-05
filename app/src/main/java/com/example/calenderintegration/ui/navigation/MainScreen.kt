@@ -1,5 +1,7 @@
 package com.example.calenderintegration.ui.navigation
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -46,6 +48,7 @@ import com.example.calenderintegration.ui.calendar.CalendarViewModel
 import com.example.calenderintegration.ui.eventView.EventView
 import com.example.calenderintegration.ui.eventView.EventViewModel
 import kotlinx.coroutines.flow.collectLatest
+@SuppressLint("ContextCastToActivity")
 @Composable
 fun MainScreen(context: Context = LocalContext.current) {
     val navController = rememberNavController()
@@ -61,6 +64,16 @@ fun MainScreen(context: Context = LocalContext.current) {
     // Collect UI states
     val uiState by calendarViewModel.uiState.collectAsState()
     val authState by authViewModel.authState.collectAsState()
+
+    // --- Check for Zoho redirect navigation intent ---
+    val activity = LocalContext.current as? Activity
+    LaunchedEffect(Unit) {
+        val navigateTo = activity?.intent?.getStringExtra("navigateTo")
+        if (navigateTo == "weeklyCalendar") {
+            navigateWithHistory(navController, navHistory, "weeklyCalendar")
+            activity?.intent?.removeExtra("navigateTo")
+        }
+    }
 
     // --- Initialization ---
     LaunchedEffect(Unit) {
