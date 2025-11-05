@@ -6,24 +6,15 @@ import androidx.navigation.NavHostController
 
 fun navigateWithHistory(navController: NavHostController, navHistory: SnapshotStateList<String>, destination: String) {
     // Add destination to history
-    if (navHistory.contains(destination)) {
-        // Remove if already exists to avoid duplicates
-        navHistory.remove(destination)
-    }
-    navHistory.add(destination)
+    val currentRoute = navController.currentDestination?.route
 
-    // Keep only the last 5 destinations
-    if (navHistory.size > 5) {
-        navHistory.removeAt(0)
-    }
+    // Avoid re-navigating to the same destination
+    if (currentRoute == destination) return
 
-    // Navigate
     navController.navigate(destination) {
-        // Pop up to the first in history, if any
-        if (navHistory.size > 1) {
-            popUpTo(navHistory.first()) {
-                saveState = true
-            }
+        // Pop up to start destination to keep back stack small and clean
+        popUpTo(navController.graph.startDestinationId) {
+            saveState = true
         }
         launchSingleTop = true
         restoreState = true

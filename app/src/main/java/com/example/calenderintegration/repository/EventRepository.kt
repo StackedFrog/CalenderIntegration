@@ -1,110 +1,111 @@
 package com.example.calenderintegration.repository
 
 import android.content.Context
+import android.provider.CalendarContract
 import android.util.Log
 import com.example.calenderintegration.api.googleapi.CalendarApiService
 import com.example.calenderintegration.model.Event
-
-
-import jakarta.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+
+
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
+import javax.inject.Singleton
 
-// Inject a constructor to make hilt automatically add dependencies
+@Singleton
 class EventRepository @Inject constructor(
-    private val calendarService : CalendarApiService,
-    private val authRepository: AuthRepository
-)
-{
-    private val _events = MutableStateFlow<List<Event>>(emptyList())
-    val events: StateFlow<List<Event>> = _events.asStateFlow()
+    private val calendarService: CalendarApiService,
+    private val accountsRepository: AccountsRepository
+){
 
-    val uiScope = CoroutineScope(Dispatchers.Main)
+    // Cached events (shared across calls)
+    private val _cachedEvents = MutableStateFlow<List<Event>>(emptyList())
+    val cachedEvents = _cachedEvents.asStateFlow()
 
-    /**
-     * Fetches upcoming calendar events for the signed-in user.
-     */
-    fun fetchEvents(context : Context)
-    {
-        val account = authRepository.currentAccount.value
-        if (account == null) {
-            Log.e("GoogleAPI", "Cannot fetch events: No signed-in account")
-            _events.value = emptyList()
+    /** Loads all events from Google Calendar. */
+    suspend fun loadAllEvents(context: Context) {
+        val accounts = accountsRepository.getGoogleAccounts(context) ?: emptyList()
+        if (accounts.isEmpty()) {
+            _cachedEvents.value = emptyList()
             return
         }
 
-        calendarService.fetchCalendarData(context, account) { fetchedEvents ->
-            uiScope.launch {
-                _events.value = fetchedEvents
-                Log.d("GoogleAPI", "Fetched ${fetchedEvents.size} events for ${account.email}")
+        val aggregated = mutableListOf<Event>()
+        var remaining = accounts.size
+
+        val deferred = kotlinx.coroutines.suspendCancellableCoroutine<List<Event>> { cont ->
+            accounts.forEach { account ->
+                calendarService.fetchCalendarData(context, account) { fetched ->
+                    aggregated += fetched
+                    remaining--
+                    if (remaining == 0) {
+                        cont.resume(aggregated, null)
+                    }
+                }
             }
         }
-    }
-    /**
-     *
-     * Gets an event by id. Returns if found, returns null if not
-     */
-    fun getEventById(context : Context, id: String): Event?
-    {
-        // Make sure _events is populated
-        fetchEvents(context)
 
-        return _events.value.find { it.id == id }
+        _cachedEvents.value = deferred
+        Log.d("EventRepository", "Fetched ${deferred.size} events.")
     }
 
-    /**
-     *
-     * Updates an event. Returns the updated event if found, returns null if not
-     */
-    fun updateEvent(id: String, changedEvent: Event): Event?
-    {
-
-        val eventToChange = _events.value.find { it.id == id }
-
-        if (eventToChange != null)
-        {
-            eventToChange.summary = changedEvent.summary
-            eventToChange.description = changedEvent.description
-            eventToChange.location = changedEvent.location
-            eventToChange.start = changedEvent.start
-            eventToChange.end = changedEvent.end
-            return eventToChange
-        }
-
-        return null
+    /** Returns event by ID from the cached list. */
+    fun getEventById(id: String): Event? {
+        return _cachedEvents.value.firstOrNull { it.id == id }
     }
 
-    /**
-     * Creates a calendar event for the signed-in user.
-     */
-    fun createEvent(context : Context, event: Event, onResult: (Boolean) -> Unit) {
-        val account = authRepository.currentAccount.value
+    /** Updates an existing event and refreshes cache. */
+    fun updateEvent(context: Context, updated: Event, onResult: (Boolean) -> Unit) {
+        val account = accountsRepository.getGoogleAccounts(context)?.firstOrNull()
         if (account == null) {
-            Log.e("GoogleAPI", "Cannot create event: No signed-in account")
+            Log.e("EventRepository", "Cannot update event: No saved accounts")
             onResult(false)
             return
         }
 
-        calendarService.createCalendarEvent(context,account, event, onResult)
+        calendarService.updateCalendarEvent(context, account, updated) { success ->
+            if (success) {
+                Log.d("EventRepository", "Event updated successfully. Refreshing cache.")
+                runBlocking { loadAllEvents(context) }
+            }
+            onResult(success)
+        }
     }
 
-
-    /**
-     * Deletes a calendar event for the signed-in user.
-     */
+    /** Deletes an event and refreshes cache. */
     fun deleteEvent(context: Context, eventId: String, onResult: (Boolean) -> Unit) {
-        val account = authRepository.currentAccount.value
+        val account = accountsRepository.getGoogleAccounts(context)?.firstOrNull()
         if (account == null) {
-            Log.e("GoogleAPI", "Cannot delete event: No signed-in account")
+            Log.e("EventRepository", "Cannot delete event: No saved accounts")
             onResult(false)
             return
         }
 
-        calendarService.deleteCalendarEvent(context,account, eventId, onResult)
+        calendarService.deleteCalendarEvent(context, account, eventId) { success ->
+            if (success) {
+                Log.d("EventRepository", "Event deleted successfully. Refreshing cache.")
+                runBlocking { loadAllEvents(context) }
+            }
+            onResult(success)
+        }
     }
 
+    /** Creates a new event and refreshes cache. */
+    fun createEvent(context: Context, event: Event, onResult: (Boolean) -> Unit) {
+        val account = accountsRepository.getGoogleAccounts(context)?.firstOrNull()
+        if (account == null) {
+            Log.e("EventRepository", "Cannot create event: No saved accounts")
+            onResult(false)
+            return
+        }
+
+        calendarService.createCalendarEvent(context, account, event) { success ->
+            if (success) {
+                Log.d("EventRepository", "Event created successfully. Refreshing cache.")
+                runBlocking { loadAllEvents(context) }
+            }
+            onResult(success)
+        }
+    }
 }

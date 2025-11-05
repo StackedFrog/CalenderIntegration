@@ -1,6 +1,7 @@
 package com.example.calenderintegration.api.googleapi
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -47,13 +48,30 @@ object GoogleAccountRepository {
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
-        val prefs = EncryptedSharedPreferences.create(
-            context,
-            PREF_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        val prefs: SharedPreferences = try {
+            // Normal case: open encrypted preferences
+            EncryptedSharedPreferences.create(
+                context,
+                PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            // Log a clean one-line message without the stack trace
+            Log.w("GoogleAPI", "EncryptedSharedPreferences reset due to invalid or outdated keyset (${e::class.simpleName})")
+
+            // Reset corrupted or mismatched encrypted prefs
+            context.deleteSharedPreferences(PREF_NAME)
+
+            EncryptedSharedPreferences.create(
+                context,
+                PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
 
         val data = prefs.getString("accounts", null) ?: return emptyList()
         val json = JSONArray(data)
@@ -64,8 +82,7 @@ object GoogleAccountRepository {
             val acc = GoogleAccount(
                 email = obj.optString("email", ""),
                 displayName = obj.optString("displayName", ""),
-                accessToken = obj.optString("accessToken", ""),
-                //idToken = obj.optString("idToken", "") // might not be needed anymore
+                accessToken = obj.optString("accessToken", "")
             )
             Log.d("GoogleAccountRepository", "Loaded account: $acc")
             accounts.add(acc)
@@ -74,6 +91,8 @@ object GoogleAccountRepository {
         Log.d("GoogleAccountRepository", "Final list of accounts: $accounts")
         return accounts
     }
+
+
 
 
     // saves account using the top function using an encryption
