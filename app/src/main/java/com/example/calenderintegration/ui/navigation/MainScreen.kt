@@ -110,7 +110,11 @@ fun MainScreen(context: Context = LocalContext.current) {
                 NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
                     NavigationBarItem(
                         selected = currentDestination == "dailyCalendar",
-                        onClick = { navigateWithHistory(navController, navHistory, "dailyCalendar") },
+                        onClick = {
+                            // Force re-fetch of all events whenever Daily is pressed
+                            calendarViewModel.loadAllEvents(context)
+                            navigateWithHistory(navController, navHistory, "dailyCalendar")
+                        },
                         icon = { Icon(Icons.Default.Home, contentDescription = null) },
                         label = { Text("Daily") }
                     )
