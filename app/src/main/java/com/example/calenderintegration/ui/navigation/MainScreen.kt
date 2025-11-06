@@ -67,13 +67,15 @@ fun MainScreen(context: Context = LocalContext.current) {
 
     // --- Check for Zoho redirect navigation intent ---
     val activity = LocalContext.current as? Activity
+
     LaunchedEffect(Unit) {
-        val navigateTo = activity?.intent?.getStringExtra("navigateTo")
-        if (navigateTo == "weeklyCalendar") {
-            navigateWithHistory(navController, navHistory, "weeklyCalendar")
-            activity?.intent?.removeExtra("navigateTo")
+        when (activity?.intent?.getStringExtra("navigateTo")) {
+            "weeklyCalendar" -> navigateWithHistory(navController, navHistory, "weeklyCalendar")
+            "accounts" -> navigateWithHistory(navController, navHistory, "accounts")
         }
+        activity?.intent?.removeExtra("navigateTo")
     }
+
 
     // --- Initialization ---
     LaunchedEffect(Unit) {

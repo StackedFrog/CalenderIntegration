@@ -27,7 +27,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("C:\\Users\\Isaac\\AndroidStudioProjects\\CalenderIntegration\\app\\calendar_integration_release.jks")
+            storeFile = file("C:\\University\\3rd Year\\Developement of Mobile Applications\\CalenderIntegration\\app\\calendar_integration_release.jks")
             storePassword = "123456"
             keyAlias = "calendar_key"
             keyPassword = "123456"

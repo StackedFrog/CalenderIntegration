@@ -3,7 +3,6 @@ package com.example.calenderintegration.ui.accounts
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.calenderintegration.model.GoogleAccount
 import com.example.calenderintegration.repository.AccountsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -23,13 +22,12 @@ class AccountsViewModel @Inject constructor(
 
     fun loadAllAccounts(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            // Currently only Google, but can add more later
-            val googleAccounts = accountsRepository.getGoogleAccounts(context)
+            val google = accountsRepository.getGoogleAccounts(context)
+            val zoho   = accountsRepository.getZohoAccounts(context)
 
             val combined = buildList {
-                addAll(googleAccounts.map { AccountItem("Google", it.email) })
-                // Future expansion example:
-                // addAll(outlookRepository.getOutlookAccounts(context).map { AccountItem("Outlook", it.email) })
+                addAll(google.map { AccountItem(provider = "Google", email = it.email) })
+                addAll(zoho.map   { AccountItem(provider = "Zoho",   email = it.email) })
             }
 
             _accountsState.update {
@@ -41,7 +39,6 @@ class AccountsViewModel @Inject constructor(
     fun openProviderPicker() {
         _accountsState.update { it.copy(showProviderPicker = true) }
     }
-
     fun dismissProviderPicker() {
         _accountsState.update { it.copy(showProviderPicker = false) }
     }
@@ -49,7 +46,6 @@ class AccountsViewModel @Inject constructor(
     fun requestDelete(email: String) {
         _accountsState.update { it.copy(showDeleteDialog = true, pendingDeleteEmail = email) }
     }
-
     fun cancelDelete() {
         _accountsState.update { it.copy(showDeleteDialog = false, pendingDeleteEmail = null) }
     }
@@ -57,14 +53,24 @@ class AccountsViewModel @Inject constructor(
     fun confirmDelete(context: Context) {
         val email = _accountsState.value.pendingDeleteEmail ?: return
         viewModelScope.launch(Dispatchers.IO) {
+            // try both stores; whichever has it will remove it
             accountsRepository.deleteGoogleAccount(context, email)
-            loadAllAccounts(context) // refresh after deletion
+            accountsRepository.deleteZohoAccount(context, email)
+            loadAllAccounts(context)
+        }
+    }
+
+    // -------- Zoho email-only add --------
+    fun addZohoByEmail(context: Context, email: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            accountsRepository.addZohoAccount(context, email.trim())
+            loadAllAccounts(context)
         }
     }
 }
 
 data class AccountItem(
-    val provider: String,   // e.g. "Google", "Outlook"
+    val provider: String,   // "Google" or "Zoho"
     val email: String
 )
 
@@ -72,7 +78,9 @@ data class AccountsState(
     val accounts: List<AccountItem> = emptyList(),
     val loading: Boolean = false,
     val error: String? = null,
+
     val showDeleteDialog: Boolean = false,
     val pendingDeleteEmail: String? = null,
+
     val showProviderPicker: Boolean = false
 )

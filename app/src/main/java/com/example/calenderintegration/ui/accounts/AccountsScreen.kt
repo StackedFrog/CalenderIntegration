@@ -10,18 +10,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,10 +25,6 @@ import androidx.navigation.NavHostController
 import com.example.calenderintegration.ui.auth.AuthViewModel
 import com.example.calenderintegration.ui.components.ConfirmDialog
 import com.example.calenderintegration.ui.components.ProviderPickerDialog
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-
 
 @Composable
 fun AccountsScreen(
@@ -47,17 +36,16 @@ fun AccountsScreen(
     val state by accountsViewModel.accountsState.collectAsState()
     val context = LocalContext.current
 
-    // Load saved accounts once
-    LaunchedEffect(Unit) {
-        accountsViewModel.loadAllAccounts(context)
-    }
+    // local dialog state for “enter Zoho email”
+    var showZohoEmailDialog by remember { mutableStateOf(false) }
+    var zohoEmail by remember { mutableStateOf("") }
 
-    // Launcher for Google auth pending intent
+    LaunchedEffect(Unit) { accountsViewModel.loadAllAccounts(context) }
+
     val intentSenderLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            // After interactive flow completes, reload saved accounts
             accountsViewModel.loadAllAccounts(context)
         }
     }
@@ -68,10 +56,7 @@ fun AccountsScreen(
                 title = { Text("Accounts List") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -81,9 +66,12 @@ fun AccountsScreen(
                 }
             )
 
-            // Google section
-// Accounts section CHANGED THIS BY SEBI IDK
-            SectionHeader(text = "Accounts")
+            Text(
+                text = "Accounts",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+            )
+
             if (state.accounts.isEmpty()) {
                 EmptyRow(hint = "No accounts yet")
             } else {
@@ -99,10 +87,8 @@ fun AccountsScreen(
                 }
             }
 
-
             Spacer(Modifier.height(12.dp))
 
-            // Add Account (secondary entry point)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -116,16 +102,16 @@ fun AccountsScreen(
         }
     }
 
-    // Delete confirm dialog
+    // Delete confirm
     ConfirmDialog(
         visible = state.showDeleteDialog,
         title = "Delete account",
-        message = "Are you sure you want to delete ${state.pendingDeleteEmail}? This will remove it from this device.",
+        message = "Are you sure you want to delete ${state.pendingDeleteEmail}?",
         onConfirm = { accountsViewModel.confirmDelete(context) },
         onCancel = { accountsViewModel.cancelDelete() }
     )
 
-    // Provider picker dialog (Google enabled, Zoho stub)
+    // Provider picker (Google + Zoho)
     ProviderPickerDialog(
         visible = state.showProviderPicker,
         onPickGoogle = {
@@ -137,18 +123,47 @@ fun AccountsScreen(
                 }
             )
         },
-        onPickZoho = { /* future */ },
+        onPickZoho = {
+            accountsViewModel.dismissProviderPicker()
+            showZohoEmailDialog = true              // <-- open email prompt
+        },
         onDismiss = { accountsViewModel.dismissProviderPicker() }
     )
-}
 
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-    )
+    // Simple email input for Zoho
+    if (showZohoEmailDialog) {
+        AlertDialog(
+            onDismissRequest = { showZohoEmailDialog = false },
+            title = { Text("Add Zoho account") },
+            text = {
+                OutlinedTextField(
+                    value = zohoEmail,
+                    onValueChange = { zohoEmail = it },
+                    singleLine = true,
+                    label = { Text("Email") }
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (zohoEmail.isNotBlank()) {
+                            accountsViewModel.addZohoByEmail(context, zohoEmail)
+                        }
+                        showZohoEmailDialog = false
+                        zohoEmail = ""
+                    }
+                ) { Text("Add") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showZohoEmailDialog = false
+                        zohoEmail = ""
+                    }
+                ) { Text("Cancel") }
+            }
+        )
+    }
 }
 
 @Composable
